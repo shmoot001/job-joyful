@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Briefcase, CheckSquare, BarChart3 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -60,22 +62,43 @@ const Index = () => {
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="p-6 border rounded-lg bg-card">
-              <h3 className="text-lg font-semibold mb-2">Jobb & Arbetspass</h3>
+            <div 
+              className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow cursor-pointer group"
+              onClick={() => navigate('/jobs')}
+            >
+              <div className="flex items-center mb-3">
+                <Briefcase className="h-6 w-6 mr-2 text-primary" />
+                <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+                  Jobb & Arbetspass
+                </h3>
+              </div>
               <p className="text-muted-foreground">
                 Registrera nya jobb och håll koll på dina arbetspass med kalendervy.
               </p>
             </div>
             
-            <div className="p-6 border rounded-lg bg-card">
-              <h3 className="text-lg font-semibold mb-2">To-Do Lista</h3>
+            <div 
+              className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow cursor-pointer group"
+              onClick={() => navigate('/tasks')}
+            >
+              <div className="flex items-center mb-3">
+                <CheckSquare className="h-6 w-6 mr-2 text-primary" />
+                <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+                  To-Do Lista
+                </h3>
+              </div>
               <p className="text-muted-foreground">
                 Skapa och hantera uppgifter med kategorier och deadlines.
               </p>
             </div>
             
-            <div className="p-6 border rounded-lg bg-card">
-              <h3 className="text-lg font-semibold mb-2">Dashboard</h3>
+            <div className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow cursor-pointer group opacity-60">
+              <div className="flex items-center mb-3">
+                <BarChart3 className="h-6 w-6 mr-2 text-muted-foreground" />
+                <h3 className="text-lg font-semibold text-muted-foreground">
+                  Dashboard (Kommer snart)
+                </h3>
+              </div>
               <p className="text-muted-foreground">
                 Få en översikt över din lön, arbetade timmar och kommande pass.
               </p>
