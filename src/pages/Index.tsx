@@ -1,109 +1,148 @@
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/hooks/use-toast";
-import { LogOut, User, Briefcase, CheckSquare, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Briefcase, CheckSquare, TrendingUp, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Header from "@/components/Header";
 
 const Index = () => {
-  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: "Utloggning misslyckades",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Du har loggats ut",
-        description: "Tack för att du använde Time Tracker!",
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-foreground">Time Tracker</h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <User className="h-4 w-4 mr-2" />
-                {user?.email}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                className="flex items-center space-x-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Logga ut</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header />
 
-      {/* Main Content */}
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold mb-4">Välkommen till Time Tracker!</h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Hantera dina jobb, arbetspass och uppgifter på ett enkelt sätt.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div 
-              className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow cursor-pointer group"
-              onClick={() => navigate('/jobs')}
-            >
-              <div className="flex items-center mb-3">
-                <Briefcase className="h-6 w-6 mr-2 text-primary" />
-                <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
-                  Jobb & Arbetspass
-                </h3>
-              </div>
-              <p className="text-muted-foreground">
-                Registrera nya jobb och håll koll på dina arbetspass med kalendervy.
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">Översikt över dina jobb, uppgifter och skift</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card 
+            onClick={() => navigate("/jobs")}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Mina Jobb</CardTitle>
+              <Briefcase className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">4</div>
+              <p className="text-xs text-muted-foreground">
+                Aktiva arbetsplatser
               </p>
-            </div>
-            
-            <div 
-              className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow cursor-pointer group"
-              onClick={() => navigate('/tasks')}
-            >
-              <div className="flex items-center mb-3">
-                <CheckSquare className="h-6 w-6 mr-2 text-primary" />
-                <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
-                  To-Do Lista
-                </h3>
-              </div>
-              <p className="text-muted-foreground">
-                Skapa och hantera uppgifter med kategorier och deadlines.
+            </CardContent>
+          </Card>
+
+          <Card 
+            onClick={() => navigate("/tasks")}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Mina Uppgifter</CardTitle>
+              <CheckSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">12</div>
+              <p className="text-xs text-muted-foreground">
+                3 färdiga denna vecka
               </p>
-            </div>
-            
-            <div className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow cursor-pointer group opacity-60">
-              <div className="flex items-center mb-3">
-                <BarChart3 className="h-6 w-6 mr-2 text-muted-foreground" />
-                <h3 className="text-lg font-semibold text-muted-foreground">
-                  Dashboard (Kommer snart)
-                </h3>
-              </div>
-              <p className="text-muted-foreground">
-                Få en översikt över din lön, arbetade timmar och kommande pass.
+            </CardContent>
+          </Card>
+
+          <Card 
+            onClick={() => navigate("/shifts")}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Kommande Skift</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">8</div>
+              <p className="text-xs text-muted-foreground">
+                Nästa: Imorgon 09:00
               </p>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Denna Månad</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">15,720 kr</div>
+              <p className="text-xs text-muted-foreground">
+                +12% från förra månaden
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Senaste Aktivitet</CardTitle>
+              <CardDescription>Dina senaste jobb och uppgifter</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm">Slutförde uppgift "Månadsrapport"</span>
+                  <Badge variant="secondary" className="ml-auto">2h sedan</Badge>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm">Registrerade skift på Företag AB</span>
+                  <Badge variant="secondary" className="ml-auto">5h sedan</Badge>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span className="text-sm">Skapade nytt jobb "Konsultuppdrag"</span>
+                  <Badge variant="secondary" className="ml-auto">1d sedan</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Snabbåtgärder</CardTitle>
+              <CardDescription>Vanliga åtgärder för att spara tid</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div 
+                onClick={() => navigate("/jobs")}
+                className="p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <Briefcase className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Lägg till nytt jobb</span>
+                </div>
+              </div>
+              <div 
+                onClick={() => navigate("/shifts")}
+                className="p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Registrera skift</span>
+                </div>
+              </div>
+              <div 
+                onClick={() => navigate("/tasks")}
+                className="p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <CheckSquare className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Skapa uppgift</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

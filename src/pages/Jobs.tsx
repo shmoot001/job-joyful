@@ -7,6 +7,7 @@ import { useJobs } from "@/hooks/useJobs";
 import { AddJobDialog } from "@/components/jobs/AddJobDialog";
 import { EditJobDialog } from "@/components/jobs/EditJobDialog";
 import { DeleteJobDialog } from "@/components/jobs/DeleteJobDialog";
+import Header from "@/components/Header";
 
 const Jobs = () => {
   const { jobs, isLoading } = useJobs();
@@ -37,6 +38,7 @@ const Jobs = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>

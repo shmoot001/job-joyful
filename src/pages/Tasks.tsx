@@ -8,6 +8,7 @@ import { useTasks } from "@/hooks/useTasks";
 import { AddTaskDialog } from "@/components/tasks/AddTaskDialog";
 import { EditTaskDialog } from "@/components/tasks/EditTaskDialog";
 import { DeleteTaskDialog } from "@/components/tasks/DeleteTaskDialog";
+import Header from "@/components/Header";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 
@@ -47,6 +48,7 @@ const Tasks = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>

@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Jobs from "./pages/Jobs";
 import Tasks from "./pages/Tasks";
+import Shifts from "./pages/Shifts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Tasks />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/shifts" 
+              element={
+                <ProtectedRoute>
+                  <Shifts />
                 </ProtectedRoute>
               } 
             />
