@@ -25,20 +25,43 @@ export const AddShiftDialog = ({ open, onOpenChange }: AddShiftDialogProps) => {
     notes: "",
   });
 
+  const calculateHours = (startTime: string, endTime: string): number => {
+    if (!startTime || !endTime) return 0;
+    
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    
+    const startDate = new Date();
+    startDate.setHours(startHour, startMinute, 0, 0);
+    
+    const endDate = new Date();
+    endDate.setHours(endHour, endMinute, 0, 0);
+    
+    // Handle overnight shifts
+    if (endDate < startDate) {
+      endDate.setDate(endDate.getDate() + 1);
+    }
+    
+    const diffMs = endDate.getTime() - startDate.getTime();
+    return diffMs / (1000 * 60 * 60); // Convert to hours
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Calculate hours if not provided
+    const calculatedHours = formData.hours 
+      ? parseFloat(formData.hours) 
+      : calculateHours(formData.start_time, formData.end_time);
     
     const shiftData: any = {
       job_id: formData.job_id,
       date: formData.date,
       start_time: formData.start_time,
       end_time: formData.end_time,
+      hours: calculatedHours,
       notes: formData.notes || undefined,
     };
-
-    if (formData.hours) {
-      shiftData.hours = parseFloat(formData.hours);
-    }
 
     createShift(shiftData);
     

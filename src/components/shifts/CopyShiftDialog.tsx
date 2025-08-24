@@ -35,16 +35,40 @@ export const CopyShiftDialog = ({ open, onOpenChange, shift }: CopyShiftDialogPr
     });
   };
 
+  const calculateHours = (startTime: string, endTime: string): number => {
+    if (!startTime || !endTime) return 0;
+    
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    
+    const startDate = new Date();
+    startDate.setHours(startHour, startMinute, 0, 0);
+    
+    const endDate = new Date();
+    endDate.setHours(endHour, endMinute, 0, 0);
+    
+    // Handle overnight shifts
+    if (endDate < startDate) {
+      endDate.setDate(endDate.getDate() + 1);
+    }
+    
+    const diffMs = endDate.getTime() - startDate.getTime();
+    return diffMs / (1000 * 60 * 60); // Convert to hours
+  };
+
   const handleCopyShift = () => {
     if (!shift || selectedDates.length === 0) return;
 
     selectedDates.forEach(date => {
+      // Calculate hours if not available
+      const calculatedHours = shift.hours || calculateHours(shift.start_time, shift.end_time);
+      
       const newShift = {
         job_id: shift.job_id,
         date: date.toISOString().split('T')[0],
         start_time: shift.start_time,
         end_time: shift.end_time,
-        hours: shift.hours,
+        hours: calculatedHours,
         notes: shift.notes,
       };
       
