@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Clock, Edit, Trash2, Calendar, MapPin } from "lucide-react";
+import { Plus, Clock, Edit, Trash2, Calendar, MapPin, Copy } from "lucide-react";
 import { useShifts } from "@/hooks/useShifts";
 import { useJobs } from "@/hooks/useJobs";
 import { AddShiftDialog } from "@/components/shifts/AddShiftDialog";
 import { EditShiftDialog } from "@/components/shifts/EditShiftDialog";
 import { DeleteShiftDialog } from "@/components/shifts/DeleteShiftDialog";
+import { CopyShiftDialog } from "@/components/shifts/CopyShiftDialog";
 import Header from "@/components/Header";
 
 const Shifts = () => {
@@ -17,6 +18,7 @@ const Shifts = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState<any>(null);
   const [jobFilter, setJobFilter] = useState<string>("all");
   const [timeFilter, setTimeFilter] = useState<string>("all");
@@ -29,6 +31,11 @@ const Shifts = () => {
   const handleDelete = (shift: any) => {
     setSelectedShift(shift);
     setDeleteDialogOpen(true);
+  };
+
+  const handleCopy = (shift: any) => {
+    setSelectedShift(shift);
+    setCopyDialogOpen(true);
   };
 
   const filteredShifts = shifts?.filter((shift) => {
@@ -134,6 +141,14 @@ const Shifts = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
+                        onClick={() => handleCopy(shift)}
+                        title="Kopiera skift"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
                         onClick={() => handleEdit(shift)}
                       >
                         <Edit className="h-4 w-4" />
@@ -193,6 +208,11 @@ const Shifts = () => {
         <DeleteShiftDialog
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
+          shift={selectedShift}
+        />
+        <CopyShiftDialog
+          open={copyDialogOpen}
+          onOpenChange={setCopyDialogOpen}
           shift={selectedShift}
         />
       </div>
