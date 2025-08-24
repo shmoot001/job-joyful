@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Clock, Edit, Trash2, Calendar, MapPin, Copy } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus, Clock, Edit, Trash2, Calendar, Copy } from "lucide-react";
 import { useShifts } from "@/hooks/useShifts";
 import { useJobs } from "@/hooks/useJobs";
 import { AddShiftDialog } from "@/components/shifts/AddShiftDialog";
@@ -125,77 +126,102 @@ const Shifts = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredShifts?.map((shift) => (
-              <Card key={shift.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center space-x-2">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: shift.jobs?.color }}
-                      />
-                      <CardTitle className="text-lg">{shift.jobs?.name}</CardTitle>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleCopy(shift)}
-                        title="Kopiera skift"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleEdit(shift)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleDelete(shift)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <CardDescription className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>{new Date(shift.date).toLocaleDateString('sv-SE')}</span>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Tid:</span>
-                    <span className="text-sm font-medium">
-                      {shift.start_time} - {shift.end_time}
-                    </span>
-                  </div>
-                  {shift.hours && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Timmar:</span>
-                      <Badge variant="secondary">{shift.hours}h</Badge>
-                    </div>
-                  )}
-                  {shift.jobs?.hourly_rate && shift.hours && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Betalning:</span>
-                      <span className="text-sm font-semibold text-primary">
-                        {(shift.jobs.hourly_rate * shift.hours).toFixed(0)} kr
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Jobb</TableHead>
+                  <TableHead>Datum</TableHead>
+                  <TableHead>Tid</TableHead>
+                  <TableHead>Timmar</TableHead>
+                  <TableHead>Betalning</TableHead>
+                  <TableHead>Anteckningar</TableHead>
+                  <TableHead className="text-right">Åtgärder</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredShifts?.map((shift) => (
+                  <TableRow key={shift.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: shift.jobs?.color }}
+                        />
+                        <span className="font-medium">{shift.jobs?.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>{new Date(shift.date).toLocaleDateString('sv-SE')}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono">
+                        {shift.start_time} - {shift.end_time}
                       </span>
-                    </div>
-                  )}
-                  {shift.notes && (
-                    <div className="text-sm text-muted-foreground mt-2">
-                      {shift.notes}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    </TableCell>
+                    <TableCell>
+                      {shift.hours ? (
+                        <Badge variant="secondary">{shift.hours}h</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {shift.jobs?.hourly_rate && shift.hours ? (
+                        <span className="font-semibold text-primary">
+                          {(shift.jobs.hourly_rate * shift.hours).toFixed(0)} kr
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {shift.notes ? (
+                        <span className="text-muted-foreground text-sm">
+                          {shift.notes.length > 30 
+                            ? `${shift.notes.substring(0, 30)}...` 
+                            : shift.notes
+                          }
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleCopy(shift)}
+                          title="Kopiera skift"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleEdit(shift)}
+                          title="Redigera skift"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDelete(shift)}
+                          title="Ta bort skift"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 
