@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Jobs from "./pages/Jobs";
 import Tasks from "./pages/Tasks";
 import Shifts from "./pages/Shifts";
+import SalaryDetails from "./pages/SalaryDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Shifts />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/salary-details" 
+              element={
+                <ProtectedRoute>
+                  <SalaryDetails />
                 </ProtectedRoute>
               } 
             />

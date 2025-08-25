@@ -4,7 +4,7 @@ import { Briefcase, CheckSquare, TrendingUp, Clock, Calendar, Target, Activity, 
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { useDashboard } from "@/hooks/useDashboard";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, ComposedChart } from "recharts";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', '#8884d8', '#82ca9d'];
 
@@ -85,7 +85,10 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card 
+            onClick={() => navigate("/salary-details")}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Denna Månad</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -112,33 +115,58 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={monthlyEarnings}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
+                <ComposedChart data={monthlyEarnings}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    yAxisId="left"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    yAxisId="right" 
+                    orientation="right"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
                   <Tooltip 
                     formatter={(value, name) => [
-                      name === 'earnings' ? `${value} kr` : `${value}h`,
+                      name === 'earnings' ? `${Math.round(Number(value)).toLocaleString()} kr` : `${Number(value).toFixed(1)}h`,
                       name === 'earnings' ? 'Intäkter' : 'Timmar'
                     ]}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
                   />
                   <Area 
                     yAxisId="left"
                     type="monotone" 
                     dataKey="earnings" 
                     stroke="hsl(var(--primary))" 
-                    fill="hsl(var(--primary))" 
-                    fillOpacity={0.3}
+                    fill="url(#earningsGradient)"
+                    strokeWidth={3}
                   />
                   <Line 
                     yAxisId="right"
                     type="monotone" 
                     dataKey="hours" 
-                    stroke="hsl(var(--secondary))" 
-                    strokeWidth={2}
+                    stroke="hsl(var(--accent))" 
+                    strokeWidth={3}
+                    dot={{ fill: 'hsl(var(--accent))', strokeWidth: 2, r: 4 }}
                   />
-                </AreaChart>
+                  <defs>
+                    <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                </ComposedChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
