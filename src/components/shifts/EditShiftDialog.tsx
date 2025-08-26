@@ -60,6 +60,16 @@ export const EditShiftDialog = ({ open, onOpenChange, shift }: EditShiftDialogPr
     return diffMs / (1000 * 60 * 60); // Convert to hours
   };
 
+  // Auto-calculate hours when start_time or end_time changes
+  useEffect(() => {
+    if (formData.start_time && formData.end_time && !formData.hours) {
+      const calculatedHours = calculateHours(formData.start_time, formData.end_time);
+      if (calculatedHours > 0) {
+        setFormData(prev => ({ ...prev, hours: calculatedHours.toString() }));
+      }
+    }
+  }, [formData.start_time, formData.end_time]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -129,7 +139,13 @@ export const EditShiftDialog = ({ open, onOpenChange, shift }: EditShiftDialogPr
                 id="start_time"
                 type="time"
                 value={formData.start_time}
-                onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, start_time: e.target.value }));
+                  // Clear hours field to trigger auto-calculation
+                  if (formData.end_time) {
+                    setFormData(prev => ({ ...prev, hours: "" }));
+                  }
+                }}
                 required
               />
             </div>
@@ -140,7 +156,13 @@ export const EditShiftDialog = ({ open, onOpenChange, shift }: EditShiftDialogPr
                 id="end_time"
                 type="time"
                 value={formData.end_time}
-                onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, end_time: e.target.value }));
+                  // Clear hours field to trigger auto-calculation
+                  if (formData.start_time) {
+                    setFormData(prev => ({ ...prev, hours: "" }));
+                  }
+                }}
                 required
               />
             </div>
