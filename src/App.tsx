@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Jobs from "./pages/Jobs";
 import Tasks from "./pages/Tasks";
 import Shifts from "./pages/Shifts";
+import Calendar from "./pages/Calendar";
 import SalaryDetails from "./pages/SalaryDetails";
 import NotFound from "./pages/NotFound";
 
@@ -53,6 +54,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Shifts />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/calendar" 
+              element={
+                <ProtectedRoute>
+                  <Calendar />
                 </ProtectedRoute>
               } 
             />

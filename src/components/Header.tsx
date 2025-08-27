@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogOut, Home, Briefcase, CheckSquare, Clock } from "lucide-react";
+import { LogOut, Home, Briefcase, CheckSquare, Clock, Calendar } from "lucide-react";
 
 const Header = () => {
   const { signOut } = useAuth();
@@ -18,6 +18,7 @@ const Header = () => {
     { path: "/jobs", label: "Jobb", icon: Briefcase },
     { path: "/tasks", label: "Uppgifter", icon: CheckSquare },
     { path: "/shifts", label: "Skift", icon: Clock },
+    { path: "/calendar", label: "Kalender", icon: Calendar },
   ];
 
   return (
