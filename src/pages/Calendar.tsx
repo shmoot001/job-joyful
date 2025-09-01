@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
+import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
 import { useShifts } from "@/hooks/useShifts";
 import { useTasks } from "@/hooks/useTasks";
 import { useJobs } from "@/hooks/useJobs";
@@ -23,24 +24,28 @@ const Calendar = () => {
 
   // Load external calendar events on component mount
   useEffect(() => {
-    const loadExternalEvents = () => {
-      try {
-        const subscriptions = JSON.parse(localStorage.getItem('calendarSubscriptions') || '[]');
-        const allEvents: ICalEvent[] = [];
-        
-        subscriptions.forEach((subscription: any) => {
-          const events = parseICalData(subscription.data, subscription.name);
-          allEvents.push(...events);
-        });
-        
-        setExternalEvents(allEvents);
-      } catch (error) {
-        console.error('Error loading external events:', error);
-      }
-    };
-    
     loadExternalEvents();
   }, []);
+
+  const loadExternalEvents = () => {
+    try {
+      const subscriptions = JSON.parse(localStorage.getItem('calendarSubscriptions') || '[]');
+      const allEvents: ICalEvent[] = [];
+      
+      subscriptions.forEach((subscription: any) => {
+        const events = parseICalData(subscription.data, subscription.name);
+        allEvents.push(...events);
+      });
+      
+      setExternalEvents(allEvents);
+    } catch (error) {
+      console.error('Error loading external events:', error);
+    }
+  };
+
+  const handleSubscriptionsChange = () => {
+    loadExternalEvents();
+  };
 
   const handleCalendarSubscription = async (url: string, name: string) => {
     try {
@@ -70,8 +75,8 @@ const Calendar = () => {
         description: `Kalendern "${name}" har lagts till framgångsrikt`,
       });
       
-      // Refresh the page to show new events
-      window.location.reload();
+      // Reload events to show new calendar
+      loadExternalEvents();
     } catch (error) {
       console.error('Error subscribing to calendar:', error);
       toast({
@@ -133,7 +138,10 @@ const Calendar = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
           <h1 className="text-2xl sm:text-3xl font-bold">Kalender</h1>
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
-            <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
+            <div className="flex space-x-2">
+              <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
+              <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} />
+            </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" onClick={previousMonth}>
                 <ChevronLeft className="h-4 w-4" />
