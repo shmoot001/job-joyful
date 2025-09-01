@@ -6,15 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
+import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import { useShifts } from "@/hooks/useShifts";
 import { useTasks } from "@/hooks/useTasks";
 import { useJobs } from "@/hooks/useJobs";
+import { useToast } from "@/hooks/use-toast";
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const { shifts, isLoading: shiftsLoading } = useShifts();
   const { tasks, isLoading: tasksLoading } = useTasks();
   const { jobs } = useJobs();
+  const { toast } = useToast();
+
+  const handleCalendarSubscription = (url: string, name: string) => {
+    // For now, just show a success message
+    // In a real implementation, you would:
+    // 1. Store the subscription details
+    // 2. Fetch and parse the iCal data
+    // 3. Merge events into the calendar view
+    console.log('Calendar subscription:', { url, name });
+    
+    toast({
+      title: "Funktion under utveckling",
+      description: "Kalenderprenumeration kommer att implementeras snart",
+    });
+  };
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -62,16 +79,19 @@ const Calendar = () => {
       <div className="max-w-7xl mx-auto p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
           <h1 className="text-2xl sm:text-3xl font-bold">Kalender</h1>
-          <div className="flex items-center justify-center space-x-2">
-            <Button variant="outline" size="sm" onClick={previousMonth}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <h2 className="text-lg sm:text-xl font-semibold min-w-[160px] sm:min-w-[200px] text-center">
-              {format(currentDate, "MMMM yyyy", { locale: sv })}
-            </h2>
-            <Button variant="outline" size="sm" onClick={nextMonth}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={previousMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h2 className="text-lg sm:text-xl font-semibold min-w-[160px] sm:min-w-[200px] text-center">
+                {format(currentDate, "MMMM yyyy", { locale: sv })}
+              </h2>
+              <Button variant="outline" size="sm" onClick={nextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
