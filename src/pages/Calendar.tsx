@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, parseISO } from "date-fns";
 import { sv } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -11,26 +11,75 @@ import { useShifts } from "@/hooks/useShifts";
 import { useTasks } from "@/hooks/useTasks";
 import { useJobs } from "@/hooks/useJobs";
 import { useToast } from "@/hooks/use-toast";
+import { parseICalData, ICalEvent } from "@/utils/icalParser";
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [externalEvents, setExternalEvents] = useState<ICalEvent[]>([]);
   const { shifts, isLoading: shiftsLoading } = useShifts();
   const { tasks, isLoading: tasksLoading } = useTasks();
   const { jobs } = useJobs();
   const { toast } = useToast();
 
-  const handleCalendarSubscription = (url: string, name: string) => {
-    // For now, just show a success message
-    // In a real implementation, you would:
-    // 1. Store the subscription details
-    // 2. Fetch and parse the iCal data
-    // 3. Merge events into the calendar view
-    console.log('Calendar subscription:', { url, name });
+  // Load external calendar events on component mount
+  useEffect(() => {
+    const loadExternalEvents = () => {
+      try {
+        const subscriptions = JSON.parse(localStorage.getItem('calendarSubscriptions') || '[]');
+        const allEvents: ICalEvent[] = [];
+        
+        subscriptions.forEach((subscription: any) => {
+          const events = parseICalData(subscription.data, subscription.name);
+          allEvents.push(...events);
+        });
+        
+        setExternalEvents(allEvents);
+      } catch (error) {
+        console.error('Error loading external events:', error);
+      }
+    };
     
-    toast({
-      title: "Funktion under utveckling",
-      description: "Kalenderprenumeration kommer att implementeras snart",
-    });
+    loadExternalEvents();
+  }, []);
+
+  const handleCalendarSubscription = async (url: string, name: string) => {
+    try {
+      // Fetch the iCal data
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch calendar');
+      }
+      
+      const icalData = await response.text();
+      
+      // Store in localStorage for now (in a real app, you'd use a database)
+      const existingSubscriptions = JSON.parse(localStorage.getItem('calendarSubscriptions') || '[]');
+      const newSubscription = {
+        id: Date.now().toString(),
+        name,
+        url,
+        data: icalData,
+        createdAt: new Date().toISOString()
+      };
+      
+      existingSubscriptions.push(newSubscription);
+      localStorage.setItem('calendarSubscriptions', JSON.stringify(existingSubscriptions));
+      
+      toast({
+        title: "Kalender tillagd",
+        description: `Kalendern "${name}" har lagts till framgångsrikt`,
+      });
+      
+      // Refresh the page to show new events
+      window.location.reload();
+    } catch (error) {
+      console.error('Error subscribing to calendar:', error);
+      toast({
+        title: "Fel",
+        description: "Kunde inte lägga till kalendern. Kontrollera URL:en och försök igen.",
+        variant: "destructive",
+      });
+    }
   };
 
   const monthStart = startOfMonth(currentDate);
@@ -53,6 +102,10 @@ const Calendar = () => {
   const getTasksForDate = (date: Date) => {
     if (!tasks) return [];
     return tasks.filter(task => task.deadline && isSameDay(parseISO(task.deadline), date));
+  };
+
+  const getExternalEventsForDate = (date: Date) => {
+    return externalEvents.filter(event => isSameDay(event.start, date));
   };
 
   const getJobColor = (jobId: string) => {
@@ -120,6 +173,7 @@ const Calendar = () => {
               {monthDays.map(day => {
                 const dayShifts = getShiftsForDate(day);
                 const dayTasks = getTasksForDate(day);
+                const dayExternalEvents = getExternalEventsForDate(day);
                 const isToday = isSameDay(day, new Date());
 
                 return (
@@ -168,10 +222,22 @@ const Calendar = () => {
                         </div>
                       ))}
 
+                      {/* External Calendar Events - only show first 1 on mobile */}
+                      {dayExternalEvents.slice(0, 1).map(event => (
+                        <div
+                          key={event.id}
+                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 bg-blue-100 text-blue-800"
+                          title={`${event.title} (${event.calendarName})`}
+                        >
+                          <div className="font-medium truncate">{event.title}</div>
+                          <div className="text-[9px] sm:text-xs opacity-75 hidden sm:block">{event.calendarName}</div>
+                        </div>
+                      ))}
+
                       {/* Show count if there are more items */}
-                      {(dayShifts.length > 2 || dayTasks.length > 1) && (
+                      {(dayShifts.length > 2 || dayTasks.length > 1 || dayExternalEvents.length > 1) && (
                         <div className="text-[9px] sm:text-xs text-muted-foreground text-center sm:hidden">
-                          +{(dayShifts.length > 2 ? dayShifts.length - 2 : 0) + (dayTasks.length > 1 ? dayTasks.length - 1 : 0)} mer
+                          +{(dayShifts.length > 2 ? dayShifts.length - 2 : 0) + (dayTasks.length > 1 ? dayTasks.length - 1 : 0) + (dayExternalEvents.length > 1 ? dayExternalEvents.length - 1 : 0)} mer
                         </div>
                       )}
                     </div>
@@ -195,6 +261,10 @@ const Calendar = () => {
           <div className="flex items-center space-x-1.5 sm:space-x-2">
             <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-100 rounded-sm"></div>
             <span className="text-xs sm:text-sm">Slutförda uppgifter</span>
+          </div>
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-blue-100 rounded-sm"></div>
+            <span className="text-xs sm:text-sm">Externa kalendrar</span>
           </div>
         </div>
       </div>
