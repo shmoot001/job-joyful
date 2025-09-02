@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
+import { EditShiftDialog } from "@/components/shifts/EditShiftDialog";
+import { DeleteShiftDialog } from "@/components/shifts/DeleteShiftDialog";
 import { useShifts } from "@/hooks/useShifts";
 import { useTasks } from "@/hooks/useTasks";
 import { useJobs } from "@/hooks/useJobs";
@@ -17,6 +19,9 @@ import { parseICalData, ICalEvent } from "@/utils/icalParser";
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [externalEvents, setExternalEvents] = useState<ICalEvent[]>([]);
+  const [selectedShift, setSelectedShift] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { shifts, isLoading: shiftsLoading, createShift, deleteShift } = useShifts();
   const { tasks, isLoading: tasksLoading } = useTasks();
   const { jobs, createJob } = useJobs();
@@ -177,6 +182,15 @@ const Calendar = () => {
     return job?.color || "#3B82F6";
   };
 
+  const handleShiftClick = (shift: any, action: 'edit' | 'delete') => {
+    setSelectedShift(shift);
+    if (action === 'edit') {
+      setEditDialogOpen(true);
+    } else {
+      setDeleteDialogOpen(true);
+    }
+  };
+
   const isLoading = shiftsLoading || tasksLoading;
 
   if (isLoading) {
@@ -259,7 +273,7 @@ const Calendar = () => {
                       {dayShifts.slice(0, 2).map(shift => (
                         <div
                           key={shift.id}
-                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80"
+                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 group relative"
                           style={{ 
                             backgroundColor: `${getJobColor(shift.job_id)}20`,
                             borderLeft: `2px sm:3px solid ${getJobColor(shift.job_id)}`
@@ -269,6 +283,28 @@ const Calendar = () => {
                           <div className="font-medium truncate">{shift.jobs?.name}</div>
                           <div className="text-muted-foreground hidden sm:block">
                             {shift.start_time.slice(0, 5)}-{shift.end_time.slice(0, 5)}
+                          </div>
+                          
+                          {/* Edit/Delete buttons - show on hover */}
+                          <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleShiftClick(shift, 'edit');
+                              }}
+                              className="bg-white/90 hover:bg-white text-blue-600 rounded px-1 py-0.5 text-[8px] sm:text-xs font-medium shadow-sm"
+                            >
+                              Redigera
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleShiftClick(shift, 'delete');
+                              }}
+                              className="bg-white/90 hover:bg-white text-red-600 rounded px-1 py-0.5 text-[8px] sm:text-xs font-medium shadow-sm"
+                            >
+                              Ta bort
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -335,6 +371,19 @@ const Calendar = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit and Delete Dialogs */}
+      <EditShiftDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        shift={selectedShift}
+      />
+      
+      <DeleteShiftDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        shift={selectedShift}
+      />
     </div>
   );
 };
