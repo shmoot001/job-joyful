@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogOut, Home, Briefcase, CheckSquare, Clock, Calendar, Menu } from "lucide-react";
+import { LogOut, Home, Briefcase, CheckSquare, Clock, Calendar, BarChart, Menu } from "lucide-react";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -26,6 +26,7 @@ const Header = () => {
     { path: "/tasks", label: "Uppgifter", icon: CheckSquare },
     { path: "/shifts", label: "Skift", icon: Clock },
     { path: "/calendar", label: "Kalender", icon: Calendar },
+    { path: "/statistics", label: "Statistik", icon: BarChart },
   ];
 
   return (
