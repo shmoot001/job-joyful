@@ -17,9 +17,9 @@ import { parseICalData, ICalEvent } from "@/utils/icalParser";
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [externalEvents, setExternalEvents] = useState<ICalEvent[]>([]);
-  const { shifts, isLoading: shiftsLoading } = useShifts();
+  const { shifts, isLoading: shiftsLoading, createShift, deleteShift } = useShifts();
   const { tasks, isLoading: tasksLoading } = useTasks();
-  const { jobs } = useJobs();
+  const { jobs, createJob } = useJobs();
   const { toast } = useToast();
 
   // Load external calendar events on component mount
@@ -57,7 +57,66 @@ const Calendar = () => {
       
       const icalData = await response.text();
       
-      // Store in localStorage for now (in a real app, you'd use a database)
+      // Parse the iCal events
+      const events = parseICalData(icalData, name);
+      
+      // First, find or create a job for this calendar
+      let calendarJob = jobs?.find(job => job.name === `Kalender: ${name}`);
+      
+      if (!calendarJob) {
+        // Create a job for this calendar
+        const jobData = {
+          name: `Kalender: ${name}`,
+          description: `Automatiskt skapat jobb för kalenderprenumeration: ${name}`,
+          hourly_rate: 0,
+          color: '#8B5CF6'
+        };
+        
+        createJob(jobData);
+        // We'll use the first available job for now, as the new job will be available after refresh
+        calendarJob = jobs?.[0];
+      }
+      
+      // Save events as shifts to the database
+      const shiftPromises = events.map(async (event) => {
+        // Skip all-day events or events without proper time info
+        if (!event.start || !event.end || event.start.toDateString() === event.end.toDateString() && 
+            event.start.getHours() === 0 && event.end.getHours() === 0) {
+          return;
+        }
+        
+        // Calculate hours
+        const startTime = `${event.start.getHours().toString().padStart(2, '0')}:${event.start.getMinutes().toString().padStart(2, '0')}:00`;
+        const endTime = `${event.end.getHours().toString().padStart(2, '0')}:${event.end.getMinutes().toString().padStart(2, '0')}:00`;
+        const hours = (event.end.getTime() - event.start.getTime()) / (1000 * 60 * 60);
+        
+        // Find the calendar job or use any available job
+        const jobToUse = jobs?.find(job => job.name === `Kalender: ${name}`) || calendarJob || jobs?.[0];
+        
+        if (!jobToUse) {
+          console.warn('No job available for calendar shift:', event.title);
+          return;
+        }
+        
+        const shiftData = {
+          job_id: jobToUse.id,
+          date: format(event.start, 'yyyy-MM-dd'),
+          start_time: startTime,
+          end_time: endTime,
+          hours: hours,
+          notes: `${event.title} (från ${name})`
+        };
+        
+        try {
+          createShift(shiftData);
+        } catch (error) {
+          console.error('Error creating shift for event:', event.title, error);
+        }
+      });
+      
+      await Promise.all(shiftPromises.filter(Boolean));
+      
+      // Store in localStorage for display purposes
       const existingSubscriptions = JSON.parse(localStorage.getItem('calendarSubscriptions') || '[]');
       const newSubscription = {
         id: Date.now().toString(),
@@ -72,7 +131,7 @@ const Calendar = () => {
       
       toast({
         title: "Kalender tillagd",
-        description: `Kalendern "${name}" har lagts till framgångsrikt`,
+        description: `Kalendern "${name}" har lagts till och ${events.length} händelser har importerats som skift`,
       });
       
       // Reload events to show new calendar
@@ -140,7 +199,7 @@ const Calendar = () => {
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="flex space-x-2">
               <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
-              <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} />
+              <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} deleteShift={deleteShift} shifts={shifts} />
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" onClick={previousMonth}>

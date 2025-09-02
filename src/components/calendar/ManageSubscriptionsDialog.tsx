@@ -24,9 +24,11 @@ interface Subscription {
 
 interface ManageSubscriptionsDialogProps {
   onSubscriptionsChange?: () => void;
+  deleteShift?: (id: string) => void;
+  shifts?: any[];
 }
 
-const ManageSubscriptionsDialog = ({ onSubscriptionsChange }: ManageSubscriptionsDialogProps) => {
+const ManageSubscriptionsDialog = ({ onSubscriptionsChange, deleteShift, shifts }: ManageSubscriptionsDialogProps) => {
   const [open, setOpen] = useState(false);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -92,13 +94,24 @@ const ManageSubscriptionsDialog = ({ onSubscriptionsChange }: ManageSubscription
     const subscription = subscriptions.find(sub => sub.id === id);
     if (!subscription) return;
 
-    if (window.confirm(`Är du säker på att du vill ta bort kalendern "${subscription.name}"?`)) {
+    if (window.confirm(`Är du säker på att du vill ta bort kalendern "${subscription.name}"? Detta kommer också att ta bort alla relaterade skift.`)) {
+      // Find and delete related shifts
+      if (shifts && deleteShift) {
+        const relatedShifts = shifts.filter(shift => 
+          shift.notes && shift.notes.includes(`(från ${subscription.name})`)
+        );
+        
+        relatedShifts.forEach(shift => {
+          deleteShift(shift.id);
+        });
+      }
+
       const updatedSubscriptions = subscriptions.filter(sub => sub.id !== id);
       saveSubscriptions(updatedSubscriptions);
 
       toast({
         title: "Borttagen",
-        description: `Kalendern "${subscription.name}" har tagits bort`,
+        description: `Kalendern "${subscription.name}" och alla relaterade skift har tagits bort`,
       });
     }
   };
