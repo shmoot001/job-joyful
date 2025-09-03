@@ -9,7 +9,9 @@ import Header from "@/components/Header";
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
 import { EditShiftDialog } from "@/components/shifts/EditShiftDialog";
-import { DeleteShiftDialog } from "@/components/shifts/DeleteShiftDialog";
+import { AddShiftDialog } from "@/components/shifts/AddShiftDialog";
+import { AddTaskDialog } from "@/components/tasks/AddTaskDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useShifts } from "@/hooks/useShifts";
 import { useTasks } from "@/hooks/useTasks";
 import { useJobs } from "@/hooks/useJobs";
@@ -20,8 +22,12 @@ const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [externalEvents, setExternalEvents] = useState<ICalEvent[]>([]);
   const [selectedShift, setSelectedShift] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [shiftActionDialogOpen, setShiftActionDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addShiftDialogOpen, setAddShiftDialogOpen] = useState(false);
+  const [addTaskDialogOpen, setAddTaskDialogOpen] = useState(false);
+  const [newItemDialogOpen, setNewItemDialogOpen] = useState(false);
   const { shifts, isLoading: shiftsLoading, createShift, deleteShift } = useShifts();
   const { tasks, isLoading: tasksLoading } = useTasks();
   const { jobs, createJob } = useJobs();
@@ -182,13 +188,36 @@ const Calendar = () => {
     return job?.color || "#3B82F6";
   };
 
-  const handleShiftClick = (shift: any, action: 'edit' | 'delete') => {
+  const handleShiftClick = (shift: any) => {
     setSelectedShift(shift);
-    if (action === 'edit') {
-      setEditDialogOpen(true);
-    } else {
-      setDeleteDialogOpen(true);
-    }
+    setShiftActionDialogOpen(true);
+  };
+
+  const handleDayClick = (date: Date) => {
+    setSelectedDate(date);
+    setNewItemDialogOpen(true);
+  };
+
+  const handleEditShift = () => {
+    setShiftActionDialogOpen(false);
+    setEditDialogOpen(true);
+  };
+
+  const handleAddNewShift = () => {
+    setShiftActionDialogOpen(false);
+    const shiftDate = new Date(selectedShift.date);
+    setSelectedDate(shiftDate);
+    setAddShiftDialogOpen(true);
+  };
+
+  const handleAddShift = () => {
+    setNewItemDialogOpen(false);
+    setAddShiftDialogOpen(true);
+  };
+
+  const handleAddTask = () => {
+    setNewItemDialogOpen(false);
+    setAddTaskDialogOpen(true);
   };
 
   const isLoading = shiftsLoading || tasksLoading;
@@ -260,9 +289,10 @@ const Calendar = () => {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`h-20 sm:h-32 border border-border/50 p-0.5 sm:p-1 ${
+                    className={`h-20 sm:h-32 border border-border/50 p-0.5 sm:p-1 cursor-pointer hover:bg-muted/30 transition-colors ${
                       !isSameMonth(day, currentDate) ? "bg-muted/30" : ""
                     } ${isToday ? "bg-primary/10" : ""}`}
+                    onClick={() => dayTasks.length === 0 && dayShifts.length === 0 && handleDayClick(day)}
                   >
                     <div className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${isToday ? "text-primary" : ""}`}>
                       {format(day, "d")}
@@ -273,38 +303,20 @@ const Calendar = () => {
                       {dayShifts.slice(0, 2).map(shift => (
                         <div
                           key={shift.id}
-                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 group relative"
+                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity"
                           style={{ 
                             backgroundColor: `${getJobColor(shift.job_id)}20`,
                             borderLeft: `2px sm:3px solid ${getJobColor(shift.job_id)}`
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShiftClick(shift);
                           }}
                           title={`${shift.jobs?.name} - ${shift.start_time}-${shift.end_time}`}
                         >
                           <div className="font-medium truncate">{shift.jobs?.name}</div>
                           <div className="text-muted-foreground hidden sm:block">
                             {shift.start_time.slice(0, 5)}-{shift.end_time.slice(0, 5)}
-                          </div>
-                          
-                          {/* Edit/Delete buttons - show on hover */}
-                          <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleShiftClick(shift, 'edit');
-                              }}
-                              className="bg-white/90 hover:bg-white text-blue-600 rounded px-1 py-0.5 text-[8px] sm:text-xs font-medium shadow-sm"
-                            >
-                              Redigera
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleShiftClick(shift, 'delete');
-                              }}
-                              className="bg-white/90 hover:bg-white text-red-600 rounded px-1 py-0.5 text-[8px] sm:text-xs font-medium shadow-sm"
-                            >
-                              Ta bort
-                            </button>
                           </div>
                         </div>
                       ))}
@@ -372,17 +384,56 @@ const Calendar = () => {
         </div>
       </div>
 
-      {/* Edit and Delete Dialogs */}
+      {/* Dialogs */}
+      
+      {/* Shift Action Dialog */}
+      <Dialog open={shiftActionDialogOpen} onOpenChange={setShiftActionDialogOpen}>
+        <DialogContent className="bg-background border border-border">
+          <DialogHeader>
+            <DialogTitle>Vad vill du göra?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col space-y-3">
+            <Button onClick={handleEditShift} variant="default">
+              Redigera skift
+            </Button>
+            <Button onClick={handleAddNewShift} variant="outline">
+              Lägg till nytt skift
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Item Dialog */}
+      <Dialog open={newItemDialogOpen} onOpenChange={setNewItemDialogOpen}>
+        <DialogContent className="bg-background border border-border">
+          <DialogHeader>
+            <DialogTitle>Vad vill du skapa?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col space-y-3">
+            <Button onClick={handleAddShift} variant="default">
+              Lägg till skift
+            </Button>
+            <Button onClick={handleAddTask} variant="outline">
+              Lägg till uppgift
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       <EditShiftDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         shift={selectedShift}
       />
       
-      <DeleteShiftDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        shift={selectedShift}
+      <AddShiftDialog
+        open={addShiftDialogOpen}
+        onOpenChange={setAddShiftDialogOpen}
+      />
+      
+      <AddTaskDialog
+        open={addTaskDialogOpen}
+        onOpenChange={setAddTaskDialogOpen}
       />
     </div>
   );
