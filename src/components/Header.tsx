@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LogOut, Home, Briefcase, CheckSquare, Clock, Calendar, BarChart, Menu } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -51,6 +52,9 @@ const Header = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Theme toggle */}
+            <ThemeToggle />
+            
             {/* Mobile menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
