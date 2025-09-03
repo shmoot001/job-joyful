@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogOut, Home, Briefcase, CheckSquare, Clock, Calendar, BarChart, Menu } from "lucide-react";
+import { LogOut, Home, Briefcase, CheckSquare, Clock, Calendar, BarChart, Menu, Dumbbell } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useState } from "react";
 import {
@@ -27,6 +27,7 @@ const Header = () => {
     { path: "/tasks", label: "Uppgifter", icon: CheckSquare },
     { path: "/shifts", label: "Skift", icon: Clock },
     { path: "/calendar", label: "Kalender", icon: Calendar },
+    { path: "/workouts", label: "Träning", icon: Dumbbell },
     { path: "/statistics", label: "Statistik", icon: BarChart },
   ];
 

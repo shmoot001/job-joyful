@@ -163,6 +163,89 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_days: {
+        Row: {
+          body_part: string | null
+          created_at: string
+          date: string
+          day_of_week: number
+          exercises: string | null
+          id: string
+          is_rest_day: boolean | null
+          notes: string | null
+          updated_at: string
+          user_id: string
+          workout_week_id: string
+        }
+        Insert: {
+          body_part?: string | null
+          created_at?: string
+          date: string
+          day_of_week: number
+          exercises?: string | null
+          id?: string
+          is_rest_day?: boolean | null
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+          workout_week_id: string
+        }
+        Update: {
+          body_part?: string | null
+          created_at?: string
+          date?: string
+          day_of_week?: number
+          exercises?: string | null
+          id?: string
+          is_rest_day?: boolean | null
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+          workout_week_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_days_workout_week_id_fkey"
+            columns: ["workout_week_id"]
+            isOneToOne: false
+            referencedRelation: "workout_weeks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_weeks: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+          week_number: number
+          week_start_date: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+          week_number: number
+          week_start_date: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+          week_number?: number
+          week_start_date?: string
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
