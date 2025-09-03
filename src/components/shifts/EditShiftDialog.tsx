@@ -15,7 +15,7 @@ interface EditShiftDialogProps {
 }
 
 export const EditShiftDialog = ({ open, onOpenChange, shift }: EditShiftDialogProps) => {
-  const { updateShift, isUpdating } = useShifts();
+  const { updateShift, isUpdating, deleteShift, isDeleting } = useShifts();
   const { jobs } = useJobs();
   const [formData, setFormData] = useState({
     job_id: "",
@@ -90,6 +90,13 @@ export const EditShiftDialog = ({ open, onOpenChange, shift }: EditShiftDialogPr
 
     updateShift(updates);
     onOpenChange(false);
+  };
+
+  const handleDelete = () => {
+    if (shift?.id && window.confirm("Är du säker på att du vill ta bort detta skift?")) {
+      deleteShift(shift.id);
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -191,13 +198,23 @@ export const EditShiftDialog = ({ open, onOpenChange, shift }: EditShiftDialogPr
             />
           </div>
 
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Avbryt
+          <div className="flex justify-between">
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Tar bort..." : "Ta bort"}
             </Button>
-            <Button type="submit" disabled={isUpdating}>
-              {isUpdating ? "Uppdaterar..." : "Uppdatera skift"}
-            </Button>
+            <div className="flex space-x-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Avbryt
+              </Button>
+              <Button type="submit" disabled={isUpdating}>
+                {isUpdating ? "Uppdaterar..." : "Uppdatera skift"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
