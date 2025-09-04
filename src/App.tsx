@@ -14,6 +14,7 @@ import Shifts from "./pages/Shifts";
 import Calendar from "./pages/Calendar";
 import SalaryDetails from "./pages/SalaryDetails";
 import Workouts from "./pages/Workouts";
+import Business from "./pages/Business";
 import Statistics from "./pages/Statistics";
 import NotFound from "./pages/NotFound";
 
@@ -82,6 +83,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Workouts />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/business" 
+              element={
+                <ProtectedRoute>
+                  <Business />
                 </ProtectedRoute>
               } 
             />

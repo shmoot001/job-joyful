@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_transactions: {
+        Row: {
+          category: string
+          created_at: string
+          date: string
+          id: string
+          link_order_number: string | null
+          price: number
+          product: string
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          date: string
+          id?: string
+          link_order_number?: string | null
+          price?: number
+          product: string
+          status: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          date?: string
+          id?: string
+          link_order_number?: string | null
+          price?: number
+          product?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           color: string | null
