@@ -33,11 +33,16 @@ const Header = () => {
   ];
 
   return (
-    <header className="bg-card border-b border-border">
+    <header className="bg-card/50 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
-            <h1 className="text-xl font-bold text-foreground">WorkTracker</h1>
+            <div className="flex items-center space-x-3">
+              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+                <Briefcase className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground">WorkTracker</h1>
+            </div>
             <nav className="hidden md:flex space-x-4">
               {navItems.map(({ path, label, icon: Icon }) => (
                 <Button
