@@ -88,22 +88,22 @@ const Workouts = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Dumbbell className="h-8 w-8" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
+              <Dumbbell className="h-6 w-6 sm:h-8 sm:w-8" />
               Träningsprogram
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
               Planera dina träningsveckor och följ dina framsteg
             </p>
           </div>
           
           <Dialog open={isNewWeekDialogOpen} onOpenChange={setIsNewWeekDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
+              <Button className="flex items-center gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
-                Ny träningsvecka
+                <span className="sm:inline">Ny träningsvecka</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -182,8 +182,8 @@ const Workouts = () => {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+                   <CardContent className="p-3 sm:p-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4">
                       {weekDays.map((day) => {
                         const dayData = getDayData(week, day.dayOfWeek);
                         const isCurrentDay = isToday(day.date);
@@ -192,7 +192,7 @@ const Workouts = () => {
                           <Card 
                             key={day.dayOfWeek} 
                             className={cn(
-                              "cursor-pointer transition-colors hover:bg-muted/50",
+                              "cursor-pointer transition-colors hover:bg-muted/50 min-h-[100px] sm:min-h-[120px]",
                               isCurrentDay && "ring-2 ring-primary"
                             )}
                             onClick={() => setEditingDay({
@@ -205,41 +205,45 @@ const Workouts = () => {
                               isRestDay: dayData?.is_rest_day || false,
                             })}
                           >
-                            <CardContent className="p-4">
-                              <div className="text-center">
-                                <h4 className={cn(
-                                  "font-medium mb-2",
-                                  isCurrentDay && "text-primary"
-                                )}>
-                                  {day.dayName}
-                                </h4>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {format(day.date, "d MMM", { locale: sv })}
-                                </p>
+                            <CardContent className="p-2 sm:p-4">
+                              <div className="text-center h-full flex flex-col justify-between">
+                                <div>
+                                  <h4 className={cn(
+                                    "font-medium mb-1 sm:mb-2 text-xs sm:text-sm",
+                                    isCurrentDay && "text-primary"
+                                  )}>
+                                    {day.dayName.substring(0, 3)}
+                                  </h4>
+                                  <p className="text-xs text-muted-foreground mb-1 sm:mb-2">
+                                    {format(day.date, "d", { locale: sv })}
+                                  </p>
+                                </div>
                                 
-                                {dayData?.is_rest_day ? (
-                                  <div className="bg-muted rounded p-2">
-                                    <p className="text-sm font-medium">Vila</p>
-                                  </div>
-                                ) : dayData?.body_part || dayData?.exercises ? (
-                                  <div className="space-y-1">
-                                    {dayData.body_part && (
-                                      <p className="text-sm font-medium text-primary">
-                                        {dayData.body_part}
-                                      </p>
-                                    )}
-                                    {dayData.exercises && (
-                                      <p className="text-xs text-muted-foreground truncate">
-                                        {dayData.exercises}
-                                      </p>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="text-muted-foreground">
-                                    <Plus className="h-4 w-4 mx-auto" />
-                                    <p className="text-xs mt-1">Planera</p>
-                                  </div>
-                                )}
+                                <div className="flex-1 flex items-center justify-center">
+                                  {dayData?.is_rest_day ? (
+                                    <div className="bg-muted rounded p-1 sm:p-2 w-full">
+                                      <p className="text-xs font-medium">Vila</p>
+                                    </div>
+                                  ) : dayData?.body_part || dayData?.exercises ? (
+                                    <div className="space-y-1 w-full">
+                                      {dayData.body_part && (
+                                        <p className="text-xs sm:text-sm font-medium text-primary line-clamp-2">
+                                          {dayData.body_part}
+                                        </p>
+                                      )}
+                                      {dayData.exercises && (
+                                        <p className="text-xs text-muted-foreground line-clamp-2 hidden sm:block">
+                                          {dayData.exercises}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="text-muted-foreground">
+                                      <Plus className="h-3 w-3 sm:h-4 sm:w-4 mx-auto" />
+                                      <p className="text-xs mt-1">Planera</p>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </CardContent>
                           </Card>
@@ -299,9 +303,9 @@ const WorkoutDayDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto m-4">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">
             {dayData ? `${getDayOfWeekName(dayData.dayOfWeek)} - ${format(dayData.date, "d MMM", { locale: sv })}` : "Planera träningsdag"}
           </DialogTitle>
         </DialogHeader>
