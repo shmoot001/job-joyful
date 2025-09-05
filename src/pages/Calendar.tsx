@@ -303,10 +303,10 @@ const Calendar = () => {
                       {dayShifts.slice(0, 2).map(shift => (
                         <div
                           key={shift.id}
-                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity"
+                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity text-white"
                           style={{ 
-                            backgroundColor: `${getJobColor(shift.job_id)}20`,
-                            borderLeft: `2px sm:3px solid ${getJobColor(shift.job_id)}`
+                            backgroundColor: getJobColor(shift.job_id),
+                            borderLeft: `3px solid ${getJobColor(shift.job_id)}`
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
