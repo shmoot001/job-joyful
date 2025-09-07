@@ -15,7 +15,7 @@ export default function TestEmails() {
 
     try {
       const { data, error } = await supabase.functions.invoke('send-summary-email', {
-        body: { type }
+        body: { type, only_user: true }
       });
 
       if (error) throw error;

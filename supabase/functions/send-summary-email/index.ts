@@ -12,6 +12,8 @@ const corsHeaders = {
 interface SummaryRequest {
   type: 'daily' | 'weekly';
   date?: string;
+  only_user?: boolean;
+  to?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -25,21 +27,41 @@ const handler = async (req: Request): Promise<Response> => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    const { type, date }: SummaryRequest = await req.json();
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
+    });
     
-    // Get all users with profiles
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('*');
+    const { type, date, only_user, to }: SummaryRequest = await req.json();
     
-    if (profilesError) {
-      console.error('Error fetching profiles:', profilesError);
-      throw profilesError;
+    let targets: Array<{ user_id: string; email: string | null }> = [];
+
+    if (only_user) {
+      const { data: userData, error: authError } = await supabaseAuth.auth.getUser();
+      if (authError || !userData?.user) {
+        console.error('Auth error or missing user', authError);
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      targets = [{ user_id: userData.user.id, email: to ?? userData.user.email ?? null }];
+    } else {
+      // Get all users with profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id,email');
+      
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+      targets = (profiles || []).map((p: any) => ({ user_id: p.user_id, email: p.email }));
     }
 
-    for (const profile of profiles) {
-      const userId = profile.user_id;
-      const userEmail = profile.email;
+    for (const t of targets) {
+      const userId = t.user_id;
+      const userEmail = to ?? t.email;
       
       if (!userEmail) continue;
 
