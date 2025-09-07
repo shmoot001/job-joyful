@@ -16,6 +16,7 @@ import SalaryDetails from "./pages/SalaryDetails";
 import Workouts from "./pages/Workouts";
 import Business from "./pages/Business";
 import Statistics from "./pages/Statistics";
+import TestEmails from "./pages/TestEmails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -99,6 +100,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Statistics />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/test-emails" 
+              element={
+                <ProtectedRoute>
+                  <TestEmails />
                 </ProtectedRoute>
               } 
             />
