@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTasks } from "@/hooks/useTasks";
+import { useCategories } from "@/hooks/useCategories";
 
 interface EditTaskDialogProps {
   open: boolean;
@@ -13,18 +14,10 @@ interface EditTaskDialogProps {
   task: any;
 }
 
-const categories = [
-  "Privat",
-  "Arbete", 
-  "Studier",
-  "Hälsa",
-  "Shopping",
-  "Familj",
-  "Övrigt"
-];
 
 export const EditTaskDialog = ({ open, onOpenChange, task }: EditTaskDialogProps) => {
   const { updateTask, isUpdating } = useTasks();
+  const { categories } = useCategories();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -101,9 +94,15 @@ export const EditTaskDialog = ({ open, onOpenChange, task }: EditTaskDialogProps
                 <SelectValue placeholder="Välj kategori" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                {categories?.map((category) => (
+                  <SelectItem key={category.id} value={category.name}>
+                    <div className="flex items-center space-x-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span>{category.name}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
