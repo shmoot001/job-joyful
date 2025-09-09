@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTasks } from "@/hooks/useTasks";
+import { useCategories } from "@/hooks/useCategories";
 
 interface AddTaskDialogProps {
   open: boolean;
@@ -13,18 +14,10 @@ interface AddTaskDialogProps {
   defaultCategory?: string;
 }
 
-const categories = [
-  "Privat",
-  "Arbete", 
-  "Skola",
-  "Hälsa",
-  "Shopping",
-  "Familj",
-  "Övrigt"
-];
 
 export const AddTaskDialog = ({ open, onOpenChange, defaultCategory }: AddTaskDialogProps) => {
   const { createTask, isCreating } = useTasks();
+  const { categories } = useCategories();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -93,9 +86,15 @@ export const AddTaskDialog = ({ open, onOpenChange, defaultCategory }: AddTaskDi
                 <SelectValue placeholder="Välj kategori" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                {categories?.map((category) => (
+                  <SelectItem key={category.id} value={category.name}>
+                    <div className="flex items-center space-x-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span>{category.name}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

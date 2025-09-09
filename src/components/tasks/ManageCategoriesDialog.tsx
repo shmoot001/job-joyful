@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Save, X, Folder } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
+import { useCategories } from "@/hooks/useCategories";
 import { toast } from "@/hooks/use-toast";
 
 interface ManageCategoriesDialogProps {
@@ -15,131 +16,63 @@ interface ManageCategoriesDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const colorOptions = [
+  { value: '#3B82F6', name: 'Blå' },
+  { value: '#10B981', name: 'Grön' },
+  { value: '#F59E0B', name: 'Gul' },
+  { value: '#EF4444', name: 'Röd' },
+  { value: '#8B5CF6', name: 'Lila' },
+  { value: '#F97316', name: 'Orange' },
+  { value: '#06B6D4', name: 'Cyan' },
+  { value: '#84CC16', name: 'Lime' },
+];
+
 export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesDialogProps) => {
-  const { tasks, updateTask, createTask } = useTasks();
+  const { tasks, updateTask } = useTasks();
+  const { categories, createCategory, updateCategory, deleteCategory, isCreating, isUpdating, isDeleting } = useCategories();
+  
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryColor, setNewCategoryColor] = useState('#3B82F6');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
-  const [deleteCategory, setDeleteCategory] = useState<string | null>(null);
+  const [editCategoryColor, setEditCategoryColor] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [moveToCategory, setMoveToCategory] = useState<string>("");
 
-  // Get saved categories from localStorage
-  const getSavedCategories = (): string[] => {
-    try {
-      const saved = localStorage.getItem('taskCategories');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  // Save categories to localStorage
-  const saveCategoriesToStorage = (cats: string[]) => {
-    localStorage.setItem('taskCategories', JSON.stringify(cats));
-  };
-
-  // Get unique categories from tasks
-  const taskCategories = Array.from(new Set(tasks?.map(task => task.category).filter(Boolean))) || [];
-  
-  const savedCategories = getSavedCategories();
-  
-  // Combine all categories
-  const allCategories = Array.from(new Set([...taskCategories, ...savedCategories]));
-  
-  // Add default categories if they don't exist
-  const defaultCategories = ["Privat", "Arbete", "Skola"];
-  defaultCategories.forEach(cat => {
-    if (!allCategories.includes(cat)) {
-      allCategories.push(cat);
-    }
-  });
-
-  const categories = allCategories.sort();
-
   const handleAddCategory = () => {
-    console.log('Adding category:', newCategoryName.trim());
     if (!newCategoryName.trim()) return;
     
-    const trimmedName = newCategoryName.trim();
-    if (categories.includes(trimmedName)) {
-      toast({
-        title: "Kategori finns redan",
-        description: "En kategori med detta namn finns redan",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Add to saved categories
-    const savedCategories = getSavedCategories();
-    const updatedCategories = [...savedCategories, trimmedName];
-    saveCategoriesToStorage(updatedCategories);
-    
-    console.log('Category added successfully:', trimmedName);
-    toast({
-      title: "Kategori skapad",
-      description: `Kategorin "${trimmedName}" har lagts till`,
+    createCategory({
+      name: newCategoryName.trim(),
+      color: newCategoryColor,
     });
     
     setNewCategoryName("");
+    setNewCategoryColor('#3B82F6');
   };
 
-  const handleEditCategory = (oldName: string) => {
-    console.log('Editing category:', oldName);
-    setEditingCategory(oldName);
-    setEditCategoryName(oldName);
+  const handleEditCategory = (category: any) => {
+    setEditingCategory(category.id);
+    setEditCategoryName(category.name);
+    setEditCategoryColor(category.color);
   };
 
-  const handleSaveEdit = async () => {
-    console.log('Saving edit:', editingCategory, '->', editCategoryName.trim());
+  const handleSaveEdit = () => {
     if (!editCategoryName.trim() || !editingCategory) return;
     
-    if (categories.includes(editCategoryName.trim()) && editCategoryName.trim() !== editingCategory) {
-      toast({
-        title: "Kategori finns redan",
-        description: "En kategori med detta namn finns redan",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Update all tasks with the old category name to the new name
-    const tasksToUpdate = tasks?.filter(task => task.category === editingCategory) || [];
+    updateCategory({
+      id: editingCategory,
+      name: editCategoryName.trim(),
+      color: editCategoryColor,
+    });
     
-    try {
-      for (const task of tasksToUpdate) {
-        await updateTask({ id: task.id, category: editCategoryName.trim() });
-      }
-      
-      // Update saved categories
-      const savedCategories = getSavedCategories();
-      const updatedCategories = savedCategories.map(cat => 
-        cat === editingCategory ? editCategoryName.trim() : cat
-      );
-      saveCategoriesToStorage(updatedCategories);
-      
-      console.log('Category updated successfully');
-      toast({
-        title: "Kategori uppdaterad",
-        description: `Kategorin har ändrats till "${editCategoryName.trim()}"`,
-      });
-      
-      setEditingCategory(null);
-      setEditCategoryName("");
-    } catch (error) {
-      toast({
-        title: "Fel",
-        description: "Kunde inte uppdatera kategorin",
-        variant: "destructive",
-      });
-    }
+    setEditingCategory(null);
+    setEditCategoryName("");
+    setEditCategoryColor("");
   };
 
-  const handleDeleteCategory = async () => {
-    console.log('Deleting category:', deleteCategory);
-    if (!deleteCategory) return;
-    
-    const tasksInCategory = tasks?.filter(task => task.category === deleteCategory) || [];
+  const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
+    const tasksInCategory = tasks?.filter(task => task.category === categoryName) || [];
     
     if (tasksInCategory.length > 0 && moveToCategory) {
       // Move tasks to another category
@@ -147,11 +80,6 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
         for (const task of tasksInCategory) {
           await updateTask({ id: task.id, category: moveToCategory });
         }
-        
-        toast({
-          title: "Kategori borttagen",
-          description: `Uppgifter flyttade till "${moveToCategory}"`,
-        });
       } catch (error) {
         toast({
           title: "Fel",
@@ -169,23 +97,13 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
       return;
     }
     
-    // Remove from saved categories
-    const savedCategories = getSavedCategories();
-    const updatedCategories = savedCategories.filter(cat => cat !== deleteCategory);
-    saveCategoriesToStorage(updatedCategories);
-    
-    console.log('Category deleted successfully');
-    toast({
-      title: "Kategori borttagen",
-      description: `Kategorin "${deleteCategory}" har tagits bort`,
-    });
-    
-    setDeleteCategory(null);
+    deleteCategory(categoryId);
+    setDeleteConfirm(null);
     setMoveToCategory("");
   };
 
-  const getCategoryTaskCount = (category: string) => {
-    return tasks?.filter(task => task.category === category).length || 0;
+  const getCategoryTaskCount = (categoryName: string) => {
+    return tasks?.filter(task => task.category === categoryName).length || 0;
   };
 
   return (
@@ -208,15 +126,50 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Kategorinamn (t.ex. Gym, Projekt)"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
-                />
-                <Button onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
-                  <Plus className="h-4 w-4" />
+              <div className="space-y-4">
+                <div>
+                  <Label>Kategorinamn</Label>
+                  <Input
+                    placeholder="t.ex. Gym, Projekt"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+                  />
+                </div>
+                <div>
+                  <Label>Färg</Label>
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="w-6 h-6 rounded-full border-2 border-gray-300"
+                      style={{ backgroundColor: newCategoryColor }}
+                    />
+                    <Select value={newCategoryColor} onValueChange={setNewCategoryColor}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {colorOptions.map((color) => (
+                          <SelectItem key={color.value} value={color.value}>
+                            <div className="flex items-center space-x-2">
+                              <div
+                                className="w-4 h-4 rounded-full"
+                                style={{ backgroundColor: color.value }}
+                              />
+                              <span>{color.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleAddCategory} 
+                  disabled={!newCategoryName.trim() || isCreating}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {isCreating ? "Skapar..." : "Skapa kategori"}
                 </Button>
               </div>
             </CardContent>
@@ -229,11 +182,14 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {categories.map((category) => (
-                  <div key={category} className="flex items-center justify-between p-3 border rounded-lg">
+                {categories?.map((category) => (
+                  <div key={category.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <Folder className="h-5 w-5 text-primary" />
-                      {editingCategory === category ? (
+                      <div
+                        className="w-5 h-5 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {editingCategory === category.id ? (
                         <div className="flex items-center space-x-2">
                           <Input
                             value={editCategoryName}
@@ -241,7 +197,28 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
                             className="w-40"
                             onKeyPress={(e) => e.key === 'Enter' && handleSaveEdit()}
                           />
-                          <Button size="sm" onClick={handleSaveEdit}>
+                          <Select value={editCategoryColor} onValueChange={setEditCategoryColor}>
+                            <SelectTrigger className="w-20">
+                              <div
+                                className="w-4 h-4 rounded-full"
+                                style={{ backgroundColor: editCategoryColor }}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {colorOptions.map((color) => (
+                                <SelectItem key={color.value} value={color.value}>
+                                  <div className="flex items-center space-x-2">
+                                    <div
+                                      className="w-4 h-4 rounded-full"
+                                      style={{ backgroundColor: color.value }}
+                                    />
+                                    <span>{color.name}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button size="sm" onClick={handleSaveEdit} disabled={isUpdating}>
                             <Save className="h-3 w-3" />
                           </Button>
                           <Button 
@@ -254,15 +231,15 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
                         </div>
                       ) : (
                         <>
-                          <span className="font-medium">{category}</span>
+                          <span className="font-medium">{category.name}</span>
                           <Badge variant="secondary">
-                            {getCategoryTaskCount(category)} uppgifter
+                            {getCategoryTaskCount(category.name)} uppgifter
                           </Badge>
                         </>
                       )}
                     </div>
                     
-                    {editingCategory !== category && (
+                    {editingCategory !== category.id && (
                       <div className="flex space-x-1">
                         <Button 
                           size="sm" 
@@ -274,8 +251,7 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
                         <Button 
                           size="sm" 
                           variant="ghost"
-                          onClick={() => setDeleteCategory(category)}
-                          disabled={getCategoryTaskCount(category) > 0 && categories.length <= 1}
+                          onClick={() => setDeleteConfirm(category.id)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -288,52 +264,67 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
           </Card>
 
           {/* Delete Category Confirmation */}
-          {deleteCategory && (
+          {deleteConfirm && (
             <Card className="border-destructive">
               <CardHeader>
                 <CardTitle className="text-lg text-destructive">
-                  Ta bort kategori: {deleteCategory}
+                  Ta bort kategori
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {getCategoryTaskCount(deleteCategory) > 0 && (
-                  <div>
-                    <Label>Denna kategori har {getCategoryTaskCount(deleteCategory)} uppgifter. Flytta dem till:</Label>
-                    <Select value={moveToCategory} onValueChange={setMoveToCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Välj kategori" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories
-                          .filter(cat => cat !== deleteCategory)
-                          .map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleDeleteCategory}
-                    disabled={getCategoryTaskCount(deleteCategory) > 0 && !moveToCategory}
-                  >
-                    Ta bort kategori
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setDeleteCategory(null);
-                      setMoveToCategory("");
-                    }}
-                  >
-                    Avbryt
-                  </Button>
-                </div>
+                {(() => {
+                  const categoryToDelete = categories?.find(c => c.id === deleteConfirm);
+                  const taskCount = getCategoryTaskCount(categoryToDelete?.name || "");
+                  
+                  return (
+                    <>
+                      {taskCount > 0 && (
+                        <div>
+                          <Label>Denna kategori har {taskCount} uppgifter. Flytta dem till:</Label>
+                          <Select value={moveToCategory} onValueChange={setMoveToCategory}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Välj kategori" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories
+                                ?.filter(cat => cat.id !== deleteConfirm)
+                                .map((category) => (
+                                  <SelectItem key={category.id} value={category.name}>
+                                    <div className="flex items-center space-x-2">
+                                      <div
+                                        className="w-4 h-4 rounded-full"
+                                        style={{ backgroundColor: category.color }}
+                                      />
+                                      <span>{category.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="destructive" 
+                          onClick={() => handleDeleteCategory(deleteConfirm, categoryToDelete?.name || "")}
+                          disabled={isDeleting || (taskCount > 0 && !moveToCategory)}
+                        >
+                          {isDeleting ? "Tar bort..." : "Ta bort kategori"}
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setDeleteConfirm(null);
+                            setMoveToCategory("");
+                          }}
+                        >
+                          Avbryt
+                        </Button>
+                      </div>
+                    </>
+                  );
+                })()}
               </CardContent>
             </Card>
           )}
