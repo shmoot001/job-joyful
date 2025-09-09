@@ -71,7 +71,15 @@ export const useJobs = () => {
 
   const updateJobMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Job> & { id: string }) => {
-      const { data, error } = await supabase
+      // First, get the current job data to check if break_time changed
+      const { data: currentJob } = await supabase
+        .from("jobs")
+        .select("break_time")
+        .eq("id", id)
+        .single();
+
+      // Update the job
+      const { data: updatedJob, error } = await supabase
         .from("jobs")
         .update(updates)
         .eq("id", id)
@@ -79,13 +87,59 @@ export const useJobs = () => {
         .single();
 
       if (error) throw error;
-      return data;
+
+      // If break_time was updated, recalculate all shifts for this job
+      if (updates.break_time !== undefined && currentJob && updates.break_time !== currentJob.break_time) {
+        const { data: shifts } = await supabase
+          .from("shifts")
+          .select("id, start_time, end_time, hours")
+          .eq("job_id", id);
+
+        if (shifts && shifts.length > 0) {
+          const updatedShifts = shifts.map(shift => {
+            // Calculate total time between start and end
+            const [startHour, startMinute] = shift.start_time.split(':').map(Number);
+            const [endHour, endMinute] = shift.end_time.split(':').map(Number);
+            
+            const startDate = new Date();
+            startDate.setHours(startHour, startMinute, 0, 0);
+            
+            const endDate = new Date();
+            endDate.setHours(endHour, endMinute, 0, 0);
+            
+            // Handle overnight shifts
+            if (endDate < startDate) {
+              endDate.setDate(endDate.getDate() + 1);
+            }
+            
+            const totalHours = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+            const breakHours = (updates.break_time || 0) / 60;
+            const newWorkingHours = Math.max(0, totalHours - breakHours);
+
+            return {
+              id: shift.id,
+              hours: newWorkingHours
+            };
+          });
+
+          // Update all shifts with new working hours
+          for (const shift of updatedShifts) {
+            await supabase
+              .from("shifts")
+              .update({ hours: shift.hours })
+              .eq("id", shift.id);
+          }
+        }
+      }
+
+      return updatedJob;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jobs", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["shifts", user?.id] });
       toast({
         title: "Jobb uppdaterat",
-        description: "Ändringarna har sparats",
+        description: "Ändringarna har sparats och skift har uppdaterats",
       });
     },
     onError: (error) => {
