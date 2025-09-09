@@ -10,7 +10,7 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accen
 
 const Index = () => {
   const navigate = useNavigate();
-  const { stats, monthlyEarnings, weeklyShifts, tasksByCategory, recentActivity, isLoading } = useDashboard();
+  const { stats, monthlyEarnings, monthlyHours, tasksByCategory, recentActivity, isLoading } = useDashboard();
 
   if (isLoading) {
     return (
@@ -171,30 +171,53 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* Weekly Shifts Chart */}
+          {/* Monthly Working Hours Chart */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5" />
-                <span>Veckovis Aktivitet</span>
+                <Clock className="h-5 w-5" />
+                <span>Månatliga Arbetstimmar</span>
               </CardTitle>
-              <CardDescription>Antal skift och timmar per vecka</CardDescription>
+              <CardDescription>Totala arbetstimmar och antal skift per månad</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={weeklyShifts}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
-                  <YAxis />
+                <AreaChart data={monthlyHours}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
                   <Tooltip 
                     formatter={(value, name) => [
-                      name === 'shifts' ? `${value} skift` : `${value}h`,
-                      name === 'shifts' ? 'Skift' : 'Timmar'
+                      name === 'hours' ? `${Number(value).toFixed(1)}h` : `${value} skift`,
+                      name === 'hours' ? 'Arbetstimmar' : 'Antal skift'
                     ]}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
                   />
-                  <Bar dataKey="shifts" fill="hsl(var(--primary))" />
-                  <Bar dataKey="hours" fill="hsl(var(--secondary))" />
-                </BarChart>
+                  <Area 
+                    type="monotone" 
+                    dataKey="hours" 
+                    stroke="hsl(var(--primary))" 
+                    fill="url(#hoursGradient)"
+                    strokeWidth={3}
+                  />
+                  <defs>
+                    <linearGradient id="hoursGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>

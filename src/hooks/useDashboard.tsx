@@ -17,10 +17,10 @@ export interface MonthlyEarning {
   hours: number;
 }
 
-export interface WeeklyShift {
-  week: string;
-  shifts: number;
+export interface MonthlyHours {
+  month: string;
   hours: number;
+  shifts: number;
 }
 
 export interface TasksByCategory {
@@ -149,10 +149,10 @@ export const useDashboard = () => {
   });
 
   const {
-    data: weeklyShifts,
-    isLoading: weeklyLoading,
+    data: monthlyHours,
+    isLoading: monthlyHoursLoading,
   } = useQuery({
-    queryKey: ["weekly-shifts", user?.id],
+    queryKey: ["monthly-hours", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
 
@@ -160,32 +160,29 @@ export const useDashboard = () => {
         .from("shifts")
         .select("date, hours")
         .eq("user_id", user.id)
-        .gte("date", new Date(Date.now() - 8 * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
         .order("date", { ascending: true });
 
-      const weeklyData: { [key: string]: { shifts: number; hours: number } } = {};
+      const monthlyData: { [key: string]: { hours: number; shifts: number } } = {};
 
       data?.forEach((shift) => {
         const date = new Date(shift.date);
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay());
-        const weekKey = weekStart.toISOString().split('T')[0];
+        const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
         
-        if (!weeklyData[weekKey]) {
-          weeklyData[weekKey] = { shifts: 0, hours: 0 };
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { hours: 0, shifts: 0 };
         }
         
-        weeklyData[weekKey].shifts += 1;
-        weeklyData[weekKey].hours += shift.hours || 0;
+        monthlyData[monthKey].hours += shift.hours || 0;
+        monthlyData[monthKey].shifts += 1;
       });
 
-      return Object.entries(weeklyData)
-        .map(([week, data]) => ({
-          week: new Date(week).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' }),
-          shifts: data.shifts,
+      return Object.entries(monthlyData)
+        .map(([month, data]) => ({
+          month,
           hours: Math.round(data.hours * 10) / 10,
+          shifts: data.shifts,
         }))
-        .slice(-8); // Last 8 weeks
+        .slice(-6); // Last 6 months
     },
     enabled: !!user?.id,
   });
@@ -303,9 +300,9 @@ export const useDashboard = () => {
   return {
     stats,
     monthlyEarnings,
-    weeklyShifts,
+    monthlyHours,
     tasksByCategory,
     recentActivity,
-    isLoading: statsLoading || monthlyLoading || weeklyLoading || tasksLoading || activityLoading,
+    isLoading: statsLoading || monthlyLoading || monthlyHoursLoading || tasksLoading || activityLoading,
   };
 };
