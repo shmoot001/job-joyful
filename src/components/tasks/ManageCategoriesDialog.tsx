@@ -16,28 +16,35 @@ interface ManageCategoriesDialogProps {
 }
 
 export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesDialogProps) => {
-  const { tasks, updateTask } = useTasks();
+  const { tasks, updateTask, createTask } = useTasks();
   const [newCategoryName, setNewCategoryName] = useState("");
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
   const [deleteCategory, setDeleteCategory] = useState<string | null>(null);
   const [moveToCategory, setMoveToCategory] = useState<string>("");
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
-  // Get unique categories from tasks
-  const categories = Array.from(new Set(tasks?.map(task => task.category).filter(Boolean))) || [];
+  // Get unique categories from tasks and stored categories
+  const taskCategories = Array.from(new Set(tasks?.map(task => task.category).filter(Boolean))) || [];
+  
+  // Combine task categories with manually added categories
+  const allCategories = Array.from(new Set([...taskCategories, ...availableCategories]));
   
   // Add default categories if they don't exist
   const defaultCategories = ["Privat", "Arbete", "Skola"];
   defaultCategories.forEach(cat => {
-    if (!categories.includes(cat)) {
-      categories.push(cat);
+    if (!allCategories.includes(cat)) {
+      allCategories.push(cat);
     }
   });
+
+  const categories = allCategories.sort();
 
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
     
-    if (categories.includes(newCategoryName.trim())) {
+    const trimmedName = newCategoryName.trim();
+    if (categories.includes(trimmedName)) {
       toast({
         title: "Kategori finns redan",
         description: "En kategori med detta namn finns redan",
@@ -46,10 +53,12 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
       return;
     }
 
-    // Create a dummy task to establish the category (will be removed if no real tasks are added)
+    // Add to available categories list
+    setAvailableCategories(prev => [...prev, trimmedName]);
+    
     toast({
       title: "Kategori skapad",
-      description: `Kategorin "${newCategoryName.trim()}" har lagts till`,
+      description: `Kategorin "${trimmedName}" har lagts till`,
     });
     
     setNewCategoryName("");
@@ -79,6 +88,11 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
       for (const task of tasksToUpdate) {
         await updateTask({ id: task.id, category: editCategoryName.trim() });
       }
+      
+      // Update available categories if this was a manually added category
+      setAvailableCategories(prev => 
+        prev.map(cat => cat === editingCategory ? editCategoryName.trim() : cat)
+      );
       
       toast({
         title: "Kategori uppdaterad",
@@ -128,6 +142,9 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
       });
       return;
     }
+    
+    // Remove from available categories if it was manually added
+    setAvailableCategories(prev => prev.filter(cat => cat !== deleteCategory));
     
     toast({
       title: "Kategori borttagen",
