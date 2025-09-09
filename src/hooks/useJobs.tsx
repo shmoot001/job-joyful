@@ -9,6 +9,7 @@ export interface Job {
   description?: string;
   hourly_rate: number;
   color: string;
+  break_time: number; // Break time in minutes
   user_id: string;
   created_at: string;
   updated_at: string;

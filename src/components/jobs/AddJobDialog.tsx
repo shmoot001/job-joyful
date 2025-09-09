@@ -17,6 +17,7 @@ export const AddJobDialog = ({ open, onOpenChange }: AddJobDialogProps) => {
     name: "",
     description: "",
     hourly_rate: "",
+    break_time: "",
     color: "#3B82F6",
   });
 
@@ -27,6 +28,7 @@ export const AddJobDialog = ({ open, onOpenChange }: AddJobDialogProps) => {
       name: formData.name,
       description: formData.description,
       hourly_rate: parseFloat(formData.hourly_rate),
+      break_time: parseInt(formData.break_time) || 0,
       color: formData.color,
     });
     
@@ -34,6 +36,7 @@ export const AddJobDialog = ({ open, onOpenChange }: AddJobDialogProps) => {
       name: "",
       description: "",
       hourly_rate: "",
+      break_time: "",
       color: "#3B82F6",
     });
     onOpenChange(false);
@@ -81,6 +84,19 @@ export const AddJobDialog = ({ open, onOpenChange }: AddJobDialogProps) => {
               onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
               placeholder="125.00"
               required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="break_time">Rast (minuter)</Label>
+            <Input
+              id="break_time"
+              type="number"
+              value={formData.break_time}
+              onChange={(e) =>
+                setFormData({ ...formData, break_time: e.target.value })
+              }
+              placeholder="0"
             />
           </div>
           

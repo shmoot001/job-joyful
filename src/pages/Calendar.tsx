@@ -82,6 +82,7 @@ const Calendar = () => {
           name: `Kalender: ${name}`,
           description: `Automatiskt skapat jobb för kalenderprenumeration: ${name}`,
           hourly_rate: 0,
+          break_time: 0,
           color: '#8B5CF6'
         };
         

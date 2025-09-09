@@ -25,7 +25,7 @@ export const AddShiftDialog = ({ open, onOpenChange }: AddShiftDialogProps) => {
     notes: "",
   });
 
-  const calculateHours = (startTime: string, endTime: string): number => {
+  const calculateHours = (startTime: string, endTime: string, breakTimeMinutes: number = 0): number => {
     if (!startTime || !endTime) return 0;
     
     const [startHour, startMinute] = startTime.split(':').map(Number);
@@ -43,26 +43,33 @@ export const AddShiftDialog = ({ open, onOpenChange }: AddShiftDialogProps) => {
     }
     
     const diffMs = endDate.getTime() - startDate.getTime();
-    return diffMs / (1000 * 60 * 60); // Convert to hours
+    const totalHours = diffMs / (1000 * 60 * 60); // Convert to hours
+    const breakHours = breakTimeMinutes / 60;
+    
+    return Math.max(0, totalHours - breakHours); // Subtract break time but don't go negative
   };
 
-  // Auto-calculate hours when start_time or end_time changes
+  // Auto-calculate hours when start_time, end_time, or job changes
   useEffect(() => {
-    if (formData.start_time && formData.end_time && !formData.hours) {
-      const calculatedHours = calculateHours(formData.start_time, formData.end_time);
-      if (calculatedHours > 0) {
+    if (formData.start_time && formData.end_time && formData.job_id && !formData.hours) {
+      const selectedJob = jobs?.find(job => job.id === formData.job_id);
+      const breakTime = selectedJob?.break_time || 0;
+      const calculatedHours = calculateHours(formData.start_time, formData.end_time, breakTime);
+      if (calculatedHours >= 0) {
         setFormData(prev => ({ ...prev, hours: calculatedHours.toString() }));
       }
     }
-  }, [formData.start_time, formData.end_time]);
+  }, [formData.start_time, formData.end_time, formData.job_id, jobs]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Calculate hours if not provided
+    const selectedJob = jobs?.find(job => job.id === formData.job_id);
+    const breakTime = selectedJob?.break_time || 0;
     const calculatedHours = formData.hours 
       ? parseFloat(formData.hours) 
-      : calculateHours(formData.start_time, formData.end_time);
+      : calculateHours(formData.start_time, formData.end_time, breakTime);
     
     const shiftData: any = {
       job_id: formData.job_id,
@@ -136,7 +143,7 @@ export const AddShiftDialog = ({ open, onOpenChange }: AddShiftDialogProps) => {
                 onChange={(e) => {
                   setFormData(prev => ({ ...prev, start_time: e.target.value }));
                   // Clear hours field to trigger auto-calculation
-                  if (formData.end_time) {
+                  if (formData.end_time && formData.job_id) {
                     setFormData(prev => ({ ...prev, hours: "" }));
                   }
                 }}
@@ -153,7 +160,7 @@ export const AddShiftDialog = ({ open, onOpenChange }: AddShiftDialogProps) => {
                 onChange={(e) => {
                   setFormData(prev => ({ ...prev, end_time: e.target.value }));
                   // Clear hours field to trigger auto-calculation
-                  if (formData.start_time) {
+                  if (formData.start_time && formData.job_id) {
                     setFormData(prev => ({ ...prev, hours: "" }));
                   }
                 }}
@@ -163,16 +170,21 @@ export const AddShiftDialog = ({ open, onOpenChange }: AddShiftDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="hours">Timmar (valfritt)</Label>
+            <Label htmlFor="hours">Arbetstimmar (exkl. rast)</Label>
             <Input
               id="hours"
               type="number"
               step="0.5"
               min="0"
-              placeholder="Antal timmar"
+              placeholder="Arbetstimmar automatiskt beräknat"
               value={formData.hours}
               onChange={(e) => setFormData(prev => ({ ...prev, hours: e.target.value }))}
             />
+            {formData.job_id && jobs?.find(job => job.id === formData.job_id)?.break_time > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Rasttid ({jobs.find(job => job.id === formData.job_id)?.break_time} min) dras automatiskt av
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

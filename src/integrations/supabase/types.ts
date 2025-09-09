@@ -58,6 +58,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          break_time: number
           color: string | null
           created_at: string
           description: string | null
@@ -68,6 +69,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          break_time?: number
           color?: string | null
           created_at?: string
           description?: string | null
@@ -78,6 +80,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          break_time?: number
           color?: string | null
           created_at?: string
           description?: string | null
