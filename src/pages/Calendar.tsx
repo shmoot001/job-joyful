@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, parseISO } from "date-fns";
 import { sv } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import Header from "@/components/Header";
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
@@ -285,22 +287,24 @@ const Calendar = () => {
                 const dayTasks = getTasksForDate(day);
                 const dayExternalEvents = getExternalEventsForDate(day);
                 const isToday = isSameDay(day, new Date());
+                const hasItems = dayShifts.length > 0 || dayTasks.length > 0 || dayExternalEvents.length > 0;
+                const totalItems = dayShifts.length + dayTasks.length + dayExternalEvents.length;
+                const hasOverflow = dayShifts.length > 2 || dayTasks.length > 1 || dayExternalEvents.length > 1;
 
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`h-20 sm:h-32 border border-border/50 p-0.5 sm:p-1 cursor-pointer hover:bg-muted/30 transition-colors ${
+                    className={`h-20 sm:h-32 border border-border/50 p-0.5 sm:p-1 relative ${
                       !isSameMonth(day, currentDate) ? "bg-muted/30" : ""
                     } ${isToday ? "bg-primary/10" : ""}`}
-                    onClick={() => dayTasks.length === 0 && dayShifts.length === 0 && handleDayClick(day)}
                   >
                     <div className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${isToday ? "text-primary" : ""}`}>
                       {format(day, "d")}
                     </div>
                     
                     <div className="space-y-0.5 sm:space-y-1">
-                      {/* Shifts - only show first 2 on mobile */}
-                      {dayShifts.slice(0, 2).map(shift => (
+                      {/* Shifts - show limited on mobile, more on desktop */}
+                      {dayShifts.slice(0, window.innerWidth < 640 ? 1 : 3).map(shift => (
                         <div
                           key={shift.id}
                           className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity text-white"
@@ -321,8 +325,8 @@ const Calendar = () => {
                         </div>
                       ))}
 
-                      {/* Tasks - only show first 1 on mobile */}
-                      {dayTasks.slice(0, 1).map(task => (
+                      {/* Tasks - show limited */}
+                      {dayTasks.slice(0, window.innerWidth < 640 ? 1 : 2).map(task => (
                         <div
                           key={task.id}
                           className={`text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 ${
@@ -337,8 +341,8 @@ const Calendar = () => {
                         </div>
                       ))}
 
-                      {/* External Calendar Events - only show first 1 on mobile */}
-                      {dayExternalEvents.slice(0, 1).map(event => (
+                      {/* External Calendar Events - show limited */}
+                      {dayExternalEvents.slice(0, window.innerWidth < 640 ? 1 : 2).map(event => (
                         <div
                           key={event.id}
                           className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 bg-blue-100 text-blue-800"
@@ -348,14 +352,139 @@ const Calendar = () => {
                           <div className="text-[9px] sm:text-xs opacity-75 hidden sm:block">{event.calendarName}</div>
                         </div>
                       ))}
-
-                      {/* Show count if there are more items */}
-                      {(dayShifts.length > 2 || dayTasks.length > 1 || dayExternalEvents.length > 1) && (
-                        <div className="text-[9px] sm:text-xs text-muted-foreground text-center sm:hidden">
-                          +{(dayShifts.length > 2 ? dayShifts.length - 2 : 0) + (dayTasks.length > 1 ? dayTasks.length - 1 : 0) + (dayExternalEvents.length > 1 ? dayExternalEvents.length - 1 : 0)} mer
-                        </div>
-                      )}
                     </div>
+
+                    {/* Overflow indicator with detailed view */}
+                    {hasOverflow && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute bottom-0 right-0 h-5 w-full p-0 text-[9px] sm:text-xs bg-background/80 hover:bg-background border-t"
+                          >
+                            +{totalItems - (window.innerWidth < 640 ? 3 : 7)} mer
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0" align="start">
+                          <div className="p-3 border-b">
+                            <h4 className="font-semibold text-sm">
+                              {format(day, "d MMMM yyyy", { locale: sv })}
+                            </h4>
+                          </div>
+                          <ScrollArea className="h-64">
+                            <div className="p-3 space-y-3">
+                              {/* All Shifts */}
+                              {dayShifts.length > 0 && (
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Clock className="h-4 w-4 text-primary" />
+                                    <h5 className="font-medium text-sm">Skift ({dayShifts.length})</h5>
+                                  </div>
+                                  <div className="space-y-1">
+                                    {dayShifts.map(shift => (
+                                      <div
+                                        key={shift.id}
+                                        className="text-xs p-2 rounded cursor-pointer hover:opacity-80 transition-opacity text-white"
+                                        style={{ 
+                                          backgroundColor: getJobColor(shift.job_id),
+                                          borderLeft: `3px solid ${getJobColor(shift.job_id)}`
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleShiftClick(shift);
+                                        }}
+                                      >
+                                        <div className="font-medium">{shift.jobs?.name}</div>
+                                        <div className="text-xs opacity-90">
+                                          {shift.start_time.slice(0, 5)}-{shift.end_time.slice(0, 5)}
+                                        </div>
+                                        {shift.notes && (
+                                          <div className="text-xs opacity-80 truncate">{shift.notes}</div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* All Tasks */}
+                              {dayTasks.length > 0 && (
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <CheckCircle2 className="h-4 w-4 text-orange-600" />
+                                    <h5 className="font-medium text-sm">Uppgifter ({dayTasks.length})</h5>
+                                  </div>
+                                  <div className="space-y-1">
+                                    {dayTasks.map(task => (
+                                      <div
+                                        key={task.id}
+                                        className={`text-xs p-2 rounded cursor-pointer hover:opacity-80 ${
+                                          task.completed 
+                                            ? "bg-green-100 text-green-800 line-through" 
+                                            : "bg-orange-100 text-orange-800"
+                                        }`}
+                                      >
+                                        <div className="font-medium">{task.title}</div>
+                                        <div className="text-xs opacity-75">{task.category}</div>
+                                        {task.description && (
+                                          <div className="text-xs opacity-80 mt-1">{task.description}</div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* All External Events */}
+                              {dayExternalEvents.length > 0 && (
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <CalendarIcon className="h-4 w-4 text-blue-600" />
+                                    <h5 className="font-medium text-sm">Externa kalendrar ({dayExternalEvents.length})</h5>
+                                  </div>
+                                  <div className="space-y-1">
+                                    {dayExternalEvents.map(event => (
+                                      <div
+                                        key={event.id}
+                                        className="text-xs p-2 rounded cursor-pointer hover:opacity-80 bg-blue-100 text-blue-800"
+                                      >
+                                        <div className="font-medium">{event.title}</div>
+                                        <div className="text-xs opacity-75">{event.calendarName}</div>
+                                        {event.start && event.end && (
+                                          <div className="text-xs opacity-80">
+                                            {format(event.start, "HH:mm")} - {format(event.end, "HH:mm")}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </ScrollArea>
+                          <div className="p-3 border-t">
+                            <Button 
+                              onClick={() => handleDayClick(day)} 
+                              size="sm" 
+                              className="w-full"
+                              variant="outline"
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Lägg till ny
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+
+                    {/* Click handler for empty days */}
+                    {!hasItems && (
+                      <div 
+                        className="absolute inset-0 cursor-pointer hover:bg-muted/30 transition-colors rounded"
+                        onClick={() => handleDayClick(day)}
+                      />
+                    )}
                   </div>
                 );
               })}
