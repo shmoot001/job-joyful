@@ -10,24 +10,25 @@ import { useTasks } from "@/hooks/useTasks";
 interface AddTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultCategory?: string;
 }
 
 const categories = [
   "Privat",
   "Arbete", 
-  "Studier",
+  "Skola",
   "Hälsa",
   "Shopping",
   "Familj",
   "Övrigt"
 ];
 
-export const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
+export const AddTaskDialog = ({ open, onOpenChange, defaultCategory }: AddTaskDialogProps) => {
   const { createTask, isCreating } = useTasks();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: "Privat",
+    category: defaultCategory || "Privat",
     deadline: "",
   });
 
@@ -44,7 +45,7 @@ export const AddTaskDialog = ({ open, onOpenChange }: AddTaskDialogProps) => {
     setFormData({
       title: "",
       description: "",
-      category: "Privat",
+      category: defaultCategory || "Privat",
       deadline: "",
     });
     onOpenChange(false);

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, CheckSquare, Calendar, Edit, Trash2 } from "lucide-react";
+import { Plus, CheckSquare, Calendar, Edit, Trash2, ArrowLeft, Folder, FolderOpen } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { AddTaskDialog } from "@/components/tasks/AddTaskDialog";
 import { EditTaskDialog } from "@/components/tasks/EditTaskDialog";
@@ -18,6 +18,8 @@ const Tasks = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   const handleEdit = (task: any) => {
     setSelectedTask(task);
@@ -43,31 +45,113 @@ const Tasks = () => {
     );
   }
 
-  const pendingTasks = tasks?.filter(task => !task.completed) || [];
-  const completedTasks = tasks?.filter(task => task.completed) || [];
+  // Get unique categories from tasks
+  const categories = Array.from(new Set(tasks?.map(task => task.category).filter(Boolean))) || [];
+  
+  // Add default categories if they don't exist
+  const defaultCategories = ["Privat", "Arbete", "Skola"];
+  defaultCategories.forEach(cat => {
+    if (!categories.includes(cat)) {
+      categories.push(cat);
+    }
+  });
+
+  // Filter tasks by selected category
+  const filteredTasks = selectedCategory 
+    ? tasks?.filter(task => task.category === selectedCategory) || []
+    : tasks || [];
+
+  const pendingTasks = filteredTasks.filter(task => !task.completed);
+  const completedTasks = filteredTasks.filter(task => task.completed);
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">To-Do Lista</h1>
-            <p className="text-muted-foreground mt-2">Hantera dina uppgifter och deadlines</p>
-          </div>
-          <Button onClick={() => setAddDialogOpen(true)} className="flex items-center space-x-2">
-            <Plus className="h-4 w-4" />
-            <span>Lägg till uppgift</span>
-          </Button>
-        </div>
+        {!selectedCategory ? (
+          // Category Selection View
+          <>
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Uppgift Kartor</h1>
+                <p className="text-muted-foreground mt-2">Välj en kategori för att hantera dina uppgifter</p>
+              </div>
+            </div>
 
-        {tasks?.length === 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categories.map((category) => {
+                const categoryTasks = tasks?.filter(task => task.category === category) || [];
+                const pendingCount = categoryTasks.filter(task => !task.completed).length;
+                const completedCount = categoryTasks.filter(task => task.completed).length;
+                
+                return (
+                  <Card 
+                    key={category} 
+                    className="hover:shadow-lg transition-all cursor-pointer hover:scale-105"
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    <CardHeader>
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <Folder className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{category}</CardTitle>
+                          <CardDescription>
+                            {pendingCount} pågående • {completedCount} slutförda
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>Totalt: {categoryTasks.length} uppgifter</span>
+                        <span>{pendingCount > 0 ? `${pendingCount} att göra` : "Alla klara!"}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          // Category Detail View
+          <>
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center space-x-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setSelectedCategory(null)}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Tillbaka</span>
+                </Button>
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground flex items-center space-x-2">
+                    <FolderOpen className="h-8 w-8 text-primary" />
+                    <span>{selectedCategory}</span>
+                  </h1>
+                  <p className="text-muted-foreground mt-2">
+                    {pendingTasks.length} pågående • {completedTasks.length} slutförda
+                  </p>
+                </div>
+              </div>
+              <Button onClick={() => setAddDialogOpen(true)} className="flex items-center space-x-2">
+                <Plus className="h-4 w-4" />
+                <span>Lägg till uppgift</span>
+              </Button>
+            </div>
+          </>
+        )}
+
+        {selectedCategory && filteredTasks.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <CheckSquare className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Inga uppgifter ännu</h3>
+              <h3 className="text-lg font-semibold mb-2">Inga uppgifter i {selectedCategory}</h3>
               <p className="text-muted-foreground text-center mb-4">
-                Kom igång genom att lägga till din första uppgift
+                Lägg till din första uppgift i denna kategori
               </p>
               <Button onClick={() => setAddDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -75,7 +159,7 @@ const Tasks = () => {
               </Button>
             </CardContent>
           </Card>
-        ) : (
+        ) : selectedCategory ? (
           <div className="space-y-8">
             {/* Pending Tasks */}
             {pendingTasks.length > 0 && (
@@ -197,9 +281,13 @@ const Tasks = () => {
               </div>
             )}
           </div>
-        )}
+        ) : null}
 
-        <AddTaskDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+        <AddTaskDialog
+          open={addDialogOpen} 
+          onOpenChange={setAddDialogOpen}
+          defaultCategory={selectedCategory || undefined}
+        />
         <EditTaskDialog 
           open={editDialogOpen} 
           onOpenChange={setEditDialogOpen}
