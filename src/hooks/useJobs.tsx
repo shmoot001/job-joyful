@@ -10,6 +10,7 @@ export interface Job {
   hourly_rate: number;
   color: string;
   break_time: number; // Break time in minutes
+  ob_rate: number; // OB rate in SEK per hour
   user_id: string;
   created_at: string;
   updated_at: string;

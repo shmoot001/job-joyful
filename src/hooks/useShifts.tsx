@@ -18,6 +18,7 @@ export interface Shift {
     name: string;
     color: string;
     hourly_rate: number;
+    ob_rate: number;
   };
 }
 
@@ -41,7 +42,8 @@ export const useShifts = () => {
           jobs (
             name,
             color,
-            hourly_rate
+            hourly_rate,
+            ob_rate
           )
         `)
         .eq("user_id", user.id)

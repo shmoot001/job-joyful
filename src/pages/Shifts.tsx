@@ -171,9 +171,46 @@ const Shifts = () => {
                     </TableCell>
                     <TableCell>
                       {shift.jobs?.hourly_rate && shift.hours ? (
-                        <span className="font-semibold text-primary">
-                          {((shift.jobs.hourly_rate * shift.hours) * 0.67).toFixed(0)} kr
-                        </span>
+                        (() => {
+                          const job = shift.jobs;
+                          const baseEarnings = (job.hourly_rate * shift.hours);
+                          
+                          // Calculate OB if applicable
+                          let obAmount = 0;
+                          if (job.ob_rate > 0 && shift.date && shift.start_time && shift.end_time) {
+                            const shiftDate = new Date(shift.date);
+                            const dayOfWeek = shiftDate.getDay();
+                            const [startHour] = shift.start_time.split(':').map(Number);
+                            const [endHour] = shift.end_time.split(':').map(Number);
+                            
+                            // Simple OB calculation
+                            let obHours = 0;
+                            if (dayOfWeek === 0) { // Sunday
+                              obHours = shift.hours;
+                            } else if (dayOfWeek >= 1 && dayOfWeek <= 5 && (startHour >= 20 || endHour >= 20)) { // Mon-Fri after 20:00
+                              obHours = shift.hours; // Simplified - could be more precise
+                            } else if (dayOfWeek === 6 && (startHour >= 16 || endHour >= 16)) { // Saturday after 16:00
+                              obHours = shift.hours; // Simplified - could be more precise
+                            }
+                            obAmount = obHours * job.ob_rate;
+                          }
+                          
+                          const totalGross = baseEarnings + obAmount;
+                          const totalNet = totalGross * 0.67; // After 33% tax
+                          
+                          return (
+                            <div>
+                              <div className="font-semibold text-primary">
+                                {totalNet.toFixed(0)} kr
+                              </div>
+                              {obAmount > 0 && (
+                                <div className="text-xs text-muted-foreground">
+                                  +{(obAmount * 0.67).toFixed(0)} kr OB
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}

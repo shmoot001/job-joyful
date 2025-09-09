@@ -65,6 +65,7 @@ export type Database = {
           hourly_rate: number
           id: string
           name: string
+          ob_rate: number
           updated_at: string
           user_id: string
         }
@@ -76,6 +77,7 @@ export type Database = {
           hourly_rate?: number
           id?: string
           name: string
+          ob_rate?: number
           updated_at?: string
           user_id: string
         }
@@ -87,6 +89,7 @@ export type Database = {
           hourly_rate?: number
           id?: string
           name?: string
+          ob_rate?: number
           updated_at?: string
           user_id?: string
         }

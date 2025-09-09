@@ -41,7 +41,23 @@ const SalaryDetails = () => {
         const job = jobs.find(j => j.id === shift.job_id);
         if (!job) return null;
 
-        const earnings = ((shift.hours || 0) * job.hourly_rate) * 0.67; // After 33% tax
+        let obAmount = 0;
+        if (job.ob_rate > 0 && shift.date && shift.start_time && shift.end_time) {
+          const shiftDate = new Date(shift.date);
+          const dayOfWeek = shiftDate.getDay();
+          const [startHour] = shift.start_time.split(':').map(Number);
+          const [endHour] = shift.end_time.split(':').map(Number);
+          
+          // Simple OB calculation
+          if (dayOfWeek === 0 || // Sunday
+              (dayOfWeek >= 1 && dayOfWeek <= 5 && (startHour >= 20 || endHour >= 20)) || // Mon-Fri after 20:00
+              (dayOfWeek === 6 && (startHour >= 16 || endHour >= 16))) { // Saturday after 16:00
+            obAmount = (shift.hours || 0) * job.ob_rate;
+          }
+        }
+
+        const baseEarnings = (shift.hours || 0) * job.hourly_rate;
+        const earnings = (baseEarnings + obAmount) * 0.67; // After 33% tax
         const date = new Date(shift.date);
         const month = format(date, "yyyy-MM");
 

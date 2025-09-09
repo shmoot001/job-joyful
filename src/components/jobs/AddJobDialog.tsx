@@ -18,6 +18,7 @@ export const AddJobDialog = ({ open, onOpenChange }: AddJobDialogProps) => {
     description: "",
     hourly_rate: "",
     break_time: "",
+    ob_rate: "",
     color: "#3B82F6",
   });
 
@@ -29,6 +30,7 @@ export const AddJobDialog = ({ open, onOpenChange }: AddJobDialogProps) => {
       description: formData.description,
       hourly_rate: parseFloat(formData.hourly_rate),
       break_time: parseInt(formData.break_time) || 0,
+      ob_rate: parseFloat(formData.ob_rate) || 0,
       color: formData.color,
     });
     
@@ -37,6 +39,7 @@ export const AddJobDialog = ({ open, onOpenChange }: AddJobDialogProps) => {
       description: "",
       hourly_rate: "",
       break_time: "",
+      ob_rate: "",
       color: "#3B82F6",
     });
     onOpenChange(false);
@@ -98,6 +101,23 @@ export const AddJobDialog = ({ open, onOpenChange }: AddJobDialogProps) => {
               }
               placeholder="0"
             />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="ob_rate">OB-tillägg (kr/timme)</Label>
+            <Input
+              id="ob_rate"
+              type="number"
+              step="0.01"
+              value={formData.ob_rate}
+              onChange={(e) =>
+                setFormData({ ...formData, ob_rate: e.target.value })
+              }
+              placeholder="0"
+            />
+            <p className="text-xs text-muted-foreground">
+              Mån-Fre från 20:00, Lör från 16:00, hela Sön
+            </p>
           </div>
           
           <div className="space-y-2">

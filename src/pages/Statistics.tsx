@@ -34,9 +34,25 @@ const Statistics = () => {
       const hours = Number(shift.hours) || 0;
       const job = jobs.find(j => j.id === shift.job_id);
       const hourlyRate = job?.hourly_rate || 0;
+      const obRate = job?.ob_rate || 0;
+      
+      let obAmount = 0;
+      if (obRate > 0 && shift.date && shift.start_time && shift.end_time) {
+        const shiftDate = new Date(shift.date);
+        const dayOfWeek = shiftDate.getDay();
+        const [startHour] = shift.start_time.split(':').map(Number);
+        const [endHour] = shift.end_time.split(':').map(Number);
+        
+        // Simple OB calculation
+        if (dayOfWeek === 0 || // Sunday
+            (dayOfWeek >= 1 && dayOfWeek <= 5 && (startHour >= 20 || endHour >= 20)) || // Mon-Fri after 20:00
+            (dayOfWeek === 6 && (startHour >= 16 || endHour >= 16))) { // Saturday after 16:00
+          obAmount = hours * obRate;
+        }
+      }
       
       monthlyData[monthKey].hours += hours;
-      monthlyData[monthKey].salary += (hours * hourlyRate) * 0.67; // After 33% tax
+      monthlyData[monthKey].salary += ((hours * hourlyRate) + obAmount) * 0.67; // After 33% tax
     });
     
     return Object.entries(monthlyData)
@@ -67,9 +83,25 @@ const Statistics = () => {
       const hours = Number(shift.hours) || 0;
       const job = jobs.find(j => j.id === shift.job_id);
       const hourlyRate = job?.hourly_rate || 0;
+      const obRate = job?.ob_rate || 0;
+      
+      let obAmount = 0;
+      if (obRate > 0 && shift.date && shift.start_time && shift.end_time) {
+        const shiftDate = new Date(shift.date);
+        const dayOfWeek = shiftDate.getDay();
+        const [startHour] = shift.start_time.split(':').map(Number);
+        const [endHour] = shift.end_time.split(':').map(Number);
+        
+        // Simple OB calculation
+        if (dayOfWeek === 0 || // Sunday
+            (dayOfWeek >= 1 && dayOfWeek <= 5 && (startHour >= 20 || endHour >= 20)) || // Mon-Fri after 20:00
+            (dayOfWeek === 6 && (startHour >= 16 || endHour >= 16))) { // Saturday after 16:00
+          obAmount = hours * obRate;
+        }
+      }
       
       weeklyData[weekKey].hours += hours;
-      weeklyData[weekKey].salary += (hours * hourlyRate) * 0.67; // After 33% tax
+      weeklyData[weekKey].salary += ((hours * hourlyRate) + obAmount) * 0.67; // After 33% tax
     });
     
     return Object.entries(weeklyData)
@@ -116,9 +148,25 @@ const Statistics = () => {
         const hours = Number(shift.hours) || 0;
         const job = jobs.find(j => j.id === shift.job_id);
         const hourlyRate = job?.hourly_rate || 0;
+        const obRate = job?.ob_rate || 0;
+        
+        let obAmount = 0;
+        if (obRate > 0 && shift.date && shift.start_time && shift.end_time) {
+          const shiftDate = new Date(shift.date);
+          const dayOfWeek = shiftDate.getDay();
+          const [startHour] = shift.start_time.split(':').map(Number);
+          const [endHour] = shift.end_time.split(':').map(Number);
+          
+          // Simple OB calculation
+          if (dayOfWeek === 0 || // Sunday
+              (dayOfWeek >= 1 && dayOfWeek <= 5 && (startHour >= 20 || endHour >= 20)) || // Mon-Fri after 20:00
+              (dayOfWeek === 6 && (startHour >= 16 || endHour >= 16))) { // Saturday after 16:00
+            obAmount = hours * obRate;
+          }
+        }
         
         monthlyData[monthKey].hours += hours;
-        monthlyData[monthKey].salary += (hours * hourlyRate) * 0.67; // After 33% tax
+        monthlyData[monthKey].salary += ((hours * hourlyRate) + obAmount) * 0.67; // After 33% tax
       });
     
     return Object.entries(monthlyData)
