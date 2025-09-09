@@ -41,7 +41,7 @@ const SalaryDetails = () => {
         const job = jobs.find(j => j.id === shift.job_id);
         if (!job) return null;
 
-        const earnings = (shift.hours || 0) * job.hourly_rate;
+        const earnings = ((shift.hours || 0) * job.hourly_rate) * 0.67; // After 33% tax
         const date = new Date(shift.date);
         const month = format(date, "yyyy-MM");
 

@@ -172,7 +172,7 @@ const Shifts = () => {
                     <TableCell>
                       {shift.jobs?.hourly_rate && shift.hours ? (
                         <span className="font-semibold text-primary">
-                          {(shift.jobs.hourly_rate * shift.hours).toFixed(0)} kr
+                          {((shift.jobs.hourly_rate * shift.hours) * 0.67).toFixed(0)} kr
                         </span>
                       ) : (
                         <span className="text-muted-foreground">-</span>

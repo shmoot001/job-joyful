@@ -77,7 +77,7 @@ export const useDashboard = () => {
         .lt("date", `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-01`);
 
       const monthlyEarnings = monthlyShifts?.reduce((sum, shift) => {
-        return sum + (shift.hours || 0) * (shift.jobs?.hourly_rate || 0);
+        return sum + ((shift.hours || 0) * (shift.jobs?.hourly_rate || 0)) * 0.67; // After 33% tax
       }, 0) || 0;
 
       // Get weekly hours
@@ -132,7 +132,7 @@ export const useDashboard = () => {
           monthlyData[monthKey] = { earnings: 0, hours: 0 };
         }
         
-        const earnings = (shift.hours || 0) * (shift.jobs?.hourly_rate || 0);
+        const earnings = ((shift.hours || 0) * (shift.jobs?.hourly_rate || 0)) * 0.67; // After 33% tax
         monthlyData[monthKey].earnings += earnings;
         monthlyData[monthKey].hours += shift.hours || 0;
       });

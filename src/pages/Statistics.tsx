@@ -36,7 +36,7 @@ const Statistics = () => {
       const hourlyRate = job?.hourly_rate || 0;
       
       monthlyData[monthKey].hours += hours;
-      monthlyData[monthKey].salary += hours * hourlyRate;
+      monthlyData[monthKey].salary += (hours * hourlyRate) * 0.67; // After 33% tax
     });
     
     return Object.entries(monthlyData)
@@ -69,7 +69,7 @@ const Statistics = () => {
       const hourlyRate = job?.hourly_rate || 0;
       
       weeklyData[weekKey].hours += hours;
-      weeklyData[weekKey].salary += hours * hourlyRate;
+      weeklyData[weekKey].salary += (hours * hourlyRate) * 0.67; // After 33% tax
     });
     
     return Object.entries(weeklyData)
@@ -118,7 +118,7 @@ const Statistics = () => {
         const hourlyRate = job?.hourly_rate || 0;
         
         monthlyData[monthKey].hours += hours;
-        monthlyData[monthKey].salary += hours * hourlyRate;
+        monthlyData[monthKey].salary += (hours * hourlyRate) * 0.67; // After 33% tax
       });
     
     return Object.entries(monthlyData)
