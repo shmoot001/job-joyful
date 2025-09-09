@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, CheckSquare, Calendar, Edit, Trash2, ArrowLeft, Folder, FolderOpen } from "lucide-react";
+import { Plus, CheckSquare, Calendar, Edit, Trash2, ArrowLeft, Folder, FolderOpen, Settings } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { AddTaskDialog } from "@/components/tasks/AddTaskDialog";
 import { EditTaskDialog } from "@/components/tasks/EditTaskDialog";
 import { DeleteTaskDialog } from "@/components/tasks/DeleteTaskDialog";
+import { ManageCategoriesDialog } from "@/components/tasks/ManageCategoriesDialog";
 import Header from "@/components/Header";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -20,6 +21,7 @@ const Tasks = () => {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
 
   const handleEdit = (task: any) => {
     setSelectedTask(task);
@@ -76,6 +78,14 @@ const Tasks = () => {
                 <h1 className="text-3xl font-bold text-foreground">Uppgift Kartor</h1>
                 <p className="text-muted-foreground mt-2">Välj en kategori för att hantera dina uppgifter</p>
               </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setManageCategoriesOpen(true)}
+                className="flex items-center space-x-2"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Hantera kategorier</span>
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -297,6 +307,10 @@ const Tasks = () => {
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           task={selectedTask}
+        />
+        <ManageCategoriesDialog
+          open={manageCategoriesOpen}
+          onOpenChange={setManageCategoriesOpen}
         />
       </div>
     </div>
