@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,13 +22,29 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
   const [editCategoryName, setEditCategoryName] = useState("");
   const [deleteCategory, setDeleteCategory] = useState<string | null>(null);
   const [moveToCategory, setMoveToCategory] = useState<string>("");
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
-  // Get unique categories from tasks and stored categories
+  // Get saved categories from localStorage
+  const getSavedCategories = (): string[] => {
+    try {
+      const saved = localStorage.getItem('taskCategories');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  // Save categories to localStorage
+  const saveCategoriesToStorage = (cats: string[]) => {
+    localStorage.setItem('taskCategories', JSON.stringify(cats));
+  };
+
+  // Get unique categories from tasks
   const taskCategories = Array.from(new Set(tasks?.map(task => task.category).filter(Boolean))) || [];
   
-  // Combine task categories with manually added categories
-  const allCategories = Array.from(new Set([...taskCategories, ...availableCategories]));
+  const savedCategories = getSavedCategories();
+  
+  // Combine all categories
+  const allCategories = Array.from(new Set([...taskCategories, ...savedCategories]));
   
   // Add default categories if they don't exist
   const defaultCategories = ["Privat", "Arbete", "Skola"];
@@ -41,6 +57,7 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
   const categories = allCategories.sort();
 
   const handleAddCategory = () => {
+    console.log('Adding category:', newCategoryName.trim());
     if (!newCategoryName.trim()) return;
     
     const trimmedName = newCategoryName.trim();
@@ -53,9 +70,12 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
       return;
     }
 
-    // Add to available categories list
-    setAvailableCategories(prev => [...prev, trimmedName]);
+    // Add to saved categories
+    const savedCategories = getSavedCategories();
+    const updatedCategories = [...savedCategories, trimmedName];
+    saveCategoriesToStorage(updatedCategories);
     
+    console.log('Category added successfully:', trimmedName);
     toast({
       title: "Kategori skapad",
       description: `Kategorin "${trimmedName}" har lagts till`,
@@ -65,11 +85,13 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
   };
 
   const handleEditCategory = (oldName: string) => {
+    console.log('Editing category:', oldName);
     setEditingCategory(oldName);
     setEditCategoryName(oldName);
   };
 
   const handleSaveEdit = async () => {
+    console.log('Saving edit:', editingCategory, '->', editCategoryName.trim());
     if (!editCategoryName.trim() || !editingCategory) return;
     
     if (categories.includes(editCategoryName.trim()) && editCategoryName.trim() !== editingCategory) {
@@ -89,11 +111,14 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
         await updateTask({ id: task.id, category: editCategoryName.trim() });
       }
       
-      // Update available categories if this was a manually added category
-      setAvailableCategories(prev => 
-        prev.map(cat => cat === editingCategory ? editCategoryName.trim() : cat)
+      // Update saved categories
+      const savedCategories = getSavedCategories();
+      const updatedCategories = savedCategories.map(cat => 
+        cat === editingCategory ? editCategoryName.trim() : cat
       );
+      saveCategoriesToStorage(updatedCategories);
       
+      console.log('Category updated successfully');
       toast({
         title: "Kategori uppdaterad",
         description: `Kategorin har ändrats till "${editCategoryName.trim()}"`,
@@ -111,6 +136,7 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
   };
 
   const handleDeleteCategory = async () => {
+    console.log('Deleting category:', deleteCategory);
     if (!deleteCategory) return;
     
     const tasksInCategory = tasks?.filter(task => task.category === deleteCategory) || [];
@@ -143,9 +169,12 @@ export const ManageCategoriesDialog = ({ open, onOpenChange }: ManageCategoriesD
       return;
     }
     
-    // Remove from available categories if it was manually added
-    setAvailableCategories(prev => prev.filter(cat => cat !== deleteCategory));
+    // Remove from saved categories
+    const savedCategories = getSavedCategories();
+    const updatedCategories = savedCategories.filter(cat => cat !== deleteCategory);
+    saveCategoriesToStorage(updatedCategories);
     
+    console.log('Category deleted successfully');
     toast({
       title: "Kategori borttagen",
       description: `Kategorin "${deleteCategory}" har tagits bort`,
