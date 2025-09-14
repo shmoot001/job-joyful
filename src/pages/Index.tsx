@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, CheckSquare, TrendingUp, Clock, Calendar, Target, Activity, DollarSign } from "lucide-react";
+import { Briefcase, CheckSquare, TrendingUp, Clock, Calendar, Target, Activity, DollarSign, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { useDashboard } from "@/hooks/useDashboard";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, ComposedChart } from "recharts";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', '#8884d8', '#82ca9d'];
@@ -11,6 +15,35 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accen
 const Index = () => {
   const navigate = useNavigate();
   const { stats, monthlyEarnings, monthlyHours, tasksByCategory, recentActivity, isLoading } = useDashboard();
+  const [isLoadingDaily, setIsLoadingDaily] = useState(false);
+  const [isLoadingWeekly, setIsLoadingWeekly] = useState(false);
+
+  const sendTestEmail = async (type: 'daily' | 'weekly') => {
+    const setLoading = type === 'daily' ? setIsLoadingDaily : setIsLoadingWeekly;
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-summary-email', {
+        body: { type, only_user: true }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email skickat!",
+        description: `${type === 'daily' ? 'Daglig' : 'Vecko'}sammanfattning har skickats`,
+      });
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Fel",
+        description: error.message || "Kunde inte skicka email",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -313,6 +346,76 @@ const Index = () => {
                   <p>Ingen aktivitet att visa</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Email Reports Section */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <Clock className="w-6 h-6 text-blue-600" />
+              </div>
+              <CardTitle>Daglig sammanfattning</CardTitle>
+              <CardDescription>
+                Visar imorgons pass och uppgifter
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                <p>• Alla pass för nästa dag</p>
+                <p>• Uppgifter som förfaller imorgon</p>
+                <p>• Beräknade intäkter</p>
+              </div>
+              <Button 
+                onClick={() => sendTestEmail('daily')}
+                disabled={isLoadingDaily}
+                className="w-full"
+              >
+                {isLoadingDaily ? (
+                  "Skickar..."
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Skicka daglig sammanfattning
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <Calendar className="w-6 h-6 text-green-600" />
+              </div>
+              <CardTitle>Veckosammanfattning</CardTitle>
+              <CardDescription>
+                Visar hela veckans aktiviteter och statistik
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                <p>• Alla pass för aktuell vecka</p>
+                <p>• Totala arbetstimmar</p>
+                <p>• Totala intäkter</p>
+                <p>• Uppgiftsstatistik</p>
+              </div>
+              <Button 
+                onClick={() => sendTestEmail('weekly')}
+                disabled={isLoadingWeekly}
+                className="w-full"
+              >
+                {isLoadingWeekly ? (
+                  "Skickar..."
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Skicka veckosammanfattning
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
         </div>
