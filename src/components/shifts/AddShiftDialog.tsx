@@ -11,9 +11,10 @@ import { useJobs } from "@/hooks/useJobs";
 interface AddShiftDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  selectedDate?: Date | null;
 }
 
-export const AddShiftDialog = ({ open, onOpenChange }: AddShiftDialogProps) => {
+export const AddShiftDialog = ({ open, onOpenChange, selectedDate }: AddShiftDialogProps) => {
   const { createShift, isCreating } = useShifts();
   const { jobs } = useJobs();
   const [formData, setFormData] = useState({
@@ -48,6 +49,14 @@ export const AddShiftDialog = ({ open, onOpenChange }: AddShiftDialogProps) => {
     
     return Math.max(0, totalHours - breakHours); // Subtract break time but don't go negative
   };
+
+  // Set date when selectedDate changes
+  useEffect(() => {
+    if (selectedDate && open) {
+      const dateString = selectedDate.toISOString().split('T')[0];
+      setFormData(prev => ({ ...prev, date: dateString }));
+    }
+  }, [selectedDate, open]);
 
   // Auto-calculate hours when start_time, end_time, or job changes
   useEffect(() => {

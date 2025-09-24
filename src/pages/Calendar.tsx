@@ -557,10 +557,11 @@ const Calendar = () => {
         shift={selectedShift}
       />
       
-      <AddShiftDialog
-        open={addShiftDialogOpen}
-        onOpenChange={setAddShiftDialogOpen}
-      />
+              <AddShiftDialog 
+                open={addShiftDialogOpen} 
+                onOpenChange={setAddShiftDialogOpen}
+                selectedDate={selectedDate}
+              />
       
       <AddTaskDialog
         open={addTaskDialogOpen}
