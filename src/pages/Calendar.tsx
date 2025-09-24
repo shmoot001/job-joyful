@@ -11,6 +11,7 @@ import Header from "@/components/Header";
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
 import { EditShiftDialog } from "@/components/shifts/EditShiftDialog";
+import { CopyShiftDialog } from "@/components/shifts/CopyShiftDialog";
 import { AddShiftDialog } from "@/components/shifts/AddShiftDialog";
 import { AddTaskDialog } from "@/components/tasks/AddTaskDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,6 +28,7 @@ const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [shiftActionDialogOpen, setShiftActionDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [addShiftDialogOpen, setAddShiftDialogOpen] = useState(false);
   const [addTaskDialogOpen, setAddTaskDialogOpen] = useState(false);
   const [newItemDialogOpen, setNewItemDialogOpen] = useState(false);
@@ -205,6 +207,11 @@ const Calendar = () => {
   const handleEditShift = () => {
     setShiftActionDialogOpen(false);
     setEditDialogOpen(true);
+  };
+
+  const handleCopyShift = () => {
+    setShiftActionDialogOpen(false);
+    setCopyDialogOpen(true);
   };
 
   const handleAddNewShift = () => {
@@ -527,6 +534,9 @@ const Calendar = () => {
             <Button onClick={handleEditShift} variant="default">
               Redigera skift
             </Button>
+            <Button onClick={handleCopyShift} variant="outline">
+              Kopiera skift
+            </Button>
             <Button onClick={handleAddNewShift} variant="outline">
               Lägg till nytt skift
             </Button>
@@ -554,6 +564,12 @@ const Calendar = () => {
       <EditShiftDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
+        shift={selectedShift}
+      />
+      
+      <CopyShiftDialog
+        open={copyDialogOpen}
+        onOpenChange={setCopyDialogOpen}
         shift={selectedShift}
       />
       
