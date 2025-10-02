@@ -500,10 +500,14 @@ const Statistics = () => {
                       <YAxis yAxisId="right" orientation="right" className="text-xs" />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '2px solid hsl(var(--primary))',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                         }}
+                        labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: '8px' }}
+                        itemStyle={{ color: 'hsl(var(--foreground))' }}
                       />
                       <Legend />
                       <Bar 
@@ -616,18 +620,24 @@ const Statistics = () => {
                               outerRadius={80}
                               fill="#8884d8"
                               dataKey="value"
+                              stroke="hsl(var(--background))"
+                              strokeWidth={2}
                             >
                               {jobEarningsBreakdown.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                               ))}
                             </Pie>
                             <Tooltip 
-                              formatter={(value: number) => `${value.toLocaleString()} kr`}
+                              formatter={(value: number) => [`${value.toLocaleString()} kr`, 'Inkomst']}
                               contentStyle={{ 
-                                backgroundColor: 'hsl(var(--card))',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: '8px'
+                                backgroundColor: 'hsl(var(--background))',
+                                border: '2px solid hsl(var(--primary))',
+                                borderRadius: '8px',
+                                padding: '12px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                               }}
+                              labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: '8px' }}
+                              itemStyle={{ color: 'hsl(var(--foreground))' }}
                             />
                           </RePieChart>
                         </ResponsiveContainer>
@@ -714,23 +724,26 @@ const Statistics = () => {
                       <YAxis yAxisId="right" orientation="right" className="text-xs" />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '2px solid hsl(var(--primary))',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                         }}
+                        labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: '8px' }}
+                        itemStyle={{ color: 'hsl(var(--foreground))' }}
                       />
                       <Legend />
                       <Bar 
                         yAxisId="left"
                         dataKey="hours" 
-                        fill="hsl(var(--chart-1))" 
+                        fill="hsl(var(--chart-3))" 
                         name="Timmar"
                         radius={[8, 8, 0, 0]}
                       />
                       <Bar 
                         yAxisId="right"
                         dataKey="earnings" 
-                        fill="hsl(var(--chart-2))" 
+                        fill="hsl(var(--chart-1))" 
                         name="Inkomst (kr)"
                         radius={[8, 8, 0, 0]}
                       />
@@ -797,10 +810,14 @@ const Statistics = () => {
                       <YAxis yAxisId="right" orientation="right" className="text-xs" />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '2px solid hsl(var(--primary))',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                         }}
+                        labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: '8px' }}
+                        itemStyle={{ color: 'hsl(var(--foreground))' }}
                       />
                       <Legend />
                       <Bar 
@@ -939,10 +956,14 @@ const Statistics = () => {
                       <YAxis className="text-xs" />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '2px solid hsl(var(--primary))',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                         }}
+                        labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: '8px' }}
+                        itemStyle={{ color: 'hsl(var(--foreground))' }}
                       />
                       <Legend />
                       <Bar 
