@@ -466,14 +466,16 @@ const Statistics = () => {
         </div>
 
         <Tabs defaultValue="monthly" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 lg:w-auto gap-1">
-            <TabsTrigger value="monthly">Månad</TabsTrigger>
-            <TabsTrigger value="weekly">Vecka</TabsTrigger>
-            <TabsTrigger value="performance">Prestanda</TabsTrigger>
-            <TabsTrigger value="dayOfWeek">Veckodagar</TabsTrigger>
-            <TabsTrigger value="upcoming">Kommande</TabsTrigger>
-            <TabsTrigger value="byJob">Per Jobb</TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto pb-2">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-3 lg:grid-cols-6 lg:w-auto h-auto">
+              <TabsTrigger value="monthly" className="text-xs sm:text-sm whitespace-nowrap">Månad</TabsTrigger>
+              <TabsTrigger value="weekly" className="text-xs sm:text-sm whitespace-nowrap">Vecka</TabsTrigger>
+              <TabsTrigger value="performance" className="text-xs sm:text-sm whitespace-nowrap">Prestanda</TabsTrigger>
+              <TabsTrigger value="dayOfWeek" className="text-xs sm:text-sm whitespace-nowrap">Veckodagar</TabsTrigger>
+              <TabsTrigger value="upcoming" className="text-xs sm:text-sm whitespace-nowrap">Kommande</TabsTrigger>
+              <TabsTrigger value="byJob" className="text-xs sm:text-sm whitespace-nowrap">Per Jobb</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Monthly Tab */}
           <TabsContent value="monthly" className="space-y-6">
