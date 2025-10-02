@@ -61,7 +61,7 @@ const Statistics = () => {
   const monthlyStats = useMemo(() => {
     if (!shifts || !jobs) return [];
     
-    const monthlyData: Record<string, { hours: number; salary: number }> = {};
+    const monthlyData: Record<string, { hours: number; salary: number; sortKey: string }> = {};
     
     shifts.forEach(shift => {
       const date = parseISO(shift.date);
@@ -69,7 +69,7 @@ const Statistics = () => {
       const monthName = format(date, 'MMMM yyyy', { locale: sv });
       
       if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { hours: 0, salary: 0 };
+        monthlyData[monthKey] = { hours: 0, salary: 0, sortKey: monthKey };
       }
       
       const hours = Number(shift.hours) || 0;
@@ -100,9 +100,10 @@ const Statistics = () => {
       .map(([key, data]) => ({
         month: format(parseISO(key + '-01'), 'MMMM yyyy', { locale: sv }),
         hours: data.hours,
-        salary: Math.round(data.salary)
+        salary: Math.round(data.salary),
+        sortKey: key
       }))
-      .sort((a, b) => a.month.localeCompare(b.month));
+      .sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   }, [shifts, jobs]);
 
   // Weekly statistics
@@ -115,7 +116,7 @@ const Statistics = () => {
       const date = parseISO(shift.date);
       const year = getYear(date);
       const weekNumber = getWeek(date, { weekStartsOn: 1 });
-      const weekKey = `${year}-W${weekNumber}`;
+      const weekKey = `${year}-W${String(weekNumber).padStart(2, '0')}`;
       
       if (!weeklyData[weekKey]) {
         weeklyData[weekKey] = { hours: 0, salary: 0 };
@@ -174,7 +175,7 @@ const Statistics = () => {
   const jobFilteredStats = useMemo(() => {
     if (!shifts || !jobs || selectedJobId === "all") return monthlyStats;
     
-    const monthlyData: Record<string, { hours: number; salary: number }> = {};
+    const monthlyData: Record<string, { hours: number; salary: number; sortKey: string }> = {};
     
     shifts
       .filter(shift => shift.job_id === selectedJobId)
@@ -183,7 +184,7 @@ const Statistics = () => {
         const monthKey = format(date, 'yyyy-MM', { locale: sv });
         
         if (!monthlyData[monthKey]) {
-          monthlyData[monthKey] = { hours: 0, salary: 0 };
+          monthlyData[monthKey] = { hours: 0, salary: 0, sortKey: monthKey };
         }
         
         const hours = Number(shift.hours) || 0;
@@ -214,9 +215,10 @@ const Statistics = () => {
       .map(([key, data]) => ({
         month: format(parseISO(key + '-01'), 'MMMM yyyy', { locale: sv }),
         hours: data.hours,
-        salary: Math.round(data.salary)
+        salary: Math.round(data.salary),
+        sortKey: key
       }))
-      .sort((a, b) => a.month.localeCompare(b.month));
+      .sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   }, [shifts, jobs, selectedJobId, monthlyStats]);
 
   if (isLoading) {
@@ -338,9 +340,10 @@ const Statistics = () => {
                         yAxisId="right"
                         type="monotone" 
                         dataKey="salary" 
-                        stroke="hsl(var(--accent))" 
-                        strokeWidth={2}
+                        stroke="hsl(var(--chart-2))" 
+                        strokeWidth={3}
                         name="Lön (kr)"
+                        dot={{ fill: "hsl(var(--chart-2))", r: 4 }}
                       />
                     </ComposedChart>
                   </ResponsiveContainer>
