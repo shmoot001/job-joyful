@@ -1,31 +1,61 @@
 import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart as BarChartIcon, TrendingUp, Calendar, Filter, DollarSign, Clock, Briefcase } from "lucide-react";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Area } from "recharts";
+import { BarChart as BarChartIcon, TrendingUp, Calendar, Filter, DollarSign, Clock, Briefcase, Download, Percent, Trophy, Target, PieChart, CalendarDays, TrendingDown } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Area, PieChart as RePieChart, Pie, Cell } from "recharts";
 import Header from "@/components/Header";
 import { useShifts } from "@/hooks/useShifts";
 import { useJobs } from "@/hooks/useJobs";
-import { format, startOfWeek, getWeek, getMonth, getYear, isFuture, parseISO } from "date-fns";
+import { format, startOfWeek, getWeek, getMonth, getYear, isFuture, parseISO, startOfYear, endOfYear, isWithinInterval } from "date-fns";
 import { sv } from "date-fns/locale";
+import { toast } from "@/hooks/use-toast";
+
+const CHART_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 const Statistics = () => {
   const { shifts, isLoading: shiftsLoading } = useShifts();
   const { jobs, isLoading: jobsLoading } = useJobs();
   const [selectedJobId, setSelectedJobId] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<string>("all");
 
   const isLoading = shiftsLoading || jobsLoading;
 
-  // Summary statistics
+  // Get available years
+  const availableYears = useMemo(() => {
+    if (!shifts) return [];
+    const years = new Set(shifts.map(shift => getYear(parseISO(shift.date))));
+    return Array.from(years).sort((a, b) => b - a);
+  }, [shifts]);
+
+  // Filter shifts by year
+  const filteredShiftsByYear = useMemo(() => {
+    if (!shifts || selectedYear === "all") return shifts;
+    return shifts.filter(shift => getYear(parseISO(shift.date)) === Number(selectedYear));
+  }, [shifts, selectedYear]);
+
+  // Summary statistics with tax breakdown
   const summaryStats = useMemo(() => {
-    if (!shifts || !jobs) return { totalHours: 0, totalSalary: 0, avgHourlyRate: 0, shiftsCount: 0 };
+    if (!filteredShiftsByYear || !jobs) return { 
+      totalHours: 0, 
+      totalSalaryNet: 0, 
+      totalSalaryGross: 0,
+      totalTax: 0,
+      totalOBGross: 0,
+      avgHourlyRate: 0, 
+      shiftsCount: 0,
+      avgPerShift: 0 
+    };
     
     let totalHours = 0;
-    let totalSalary = 0;
+    let totalSalaryGross = 0;
+    let totalOBGross = 0;
     
-    shifts.forEach(shift => {
+    filteredShiftsByYear.forEach(shift => {
       const hours = Number(shift.hours) || 0;
       const job = jobs.find(j => j.id === shift.job_id);
       const hourlyRate = job?.hourly_rate || 0;
@@ -42,28 +72,93 @@ const Statistics = () => {
             (dayOfWeek >= 1 && dayOfWeek <= 5 && (startHour >= 20 || endHour >= 20)) || 
             (dayOfWeek === 6 && (startHour >= 16 || endHour >= 16))) {
           obAmount = hours * obRate;
+          totalOBGross += obAmount;
         }
       }
       
       totalHours += hours;
-      totalSalary += ((hours * hourlyRate) + obAmount) * 0.67;
+      totalSalaryGross += (hours * hourlyRate) + obAmount;
     });
+    
+    const totalSalaryNet = totalSalaryGross * 0.67;
+    const totalTax = totalSalaryGross * 0.33;
     
     return {
       totalHours: Math.round(totalHours * 10) / 10,
-      totalSalary: Math.round(totalSalary),
-      avgHourlyRate: totalHours > 0 ? Math.round(totalSalary / totalHours) : 0,
-      shiftsCount: shifts.length
+      totalSalaryNet: Math.round(totalSalaryNet),
+      totalSalaryGross: Math.round(totalSalaryGross),
+      totalTax: Math.round(totalTax),
+      totalOBGross: Math.round(totalOBGross),
+      avgHourlyRate: totalHours > 0 ? Math.round(totalSalaryNet / totalHours) : 0,
+      shiftsCount: filteredShiftsByYear.length,
+      avgPerShift: filteredShiftsByYear.length > 0 ? Math.round(totalSalaryNet / filteredShiftsByYear.length) : 0
     };
-  }, [shifts, jobs]);
+  }, [filteredShiftsByYear, jobs]);
+
+  // Day of week analysis
+  const dayOfWeekStats = useMemo(() => {
+    if (!filteredShiftsByYear || !jobs) return [];
+
+    const dayData: Record<number, { hours: number; earnings: number; count: number }> = {};
+    const dayNames = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+
+    filteredShiftsByYear.forEach(shift => {
+      const date = parseISO(shift.date);
+      const dayOfWeek = date.getDay();
+      
+      if (!dayData[dayOfWeek]) {
+        dayData[dayOfWeek] = { hours: 0, earnings: 0, count: 0 };
+      }
+
+      const hours = Number(shift.hours) || 0;
+      const job = jobs.find(j => j.id === shift.job_id);
+      const earnings = hours * (job?.hourly_rate || 0) * 0.67;
+
+      dayData[dayOfWeek].hours += hours;
+      dayData[dayOfWeek].earnings += earnings;
+      dayData[dayOfWeek].count += 1;
+    });
+
+    return dayNames.map((name, index) => ({
+      day: name,
+      hours: dayData[index]?.hours || 0,
+      earnings: Math.round(dayData[index]?.earnings || 0),
+      avgPerShift: dayData[index]?.count > 0 ? Math.round(dayData[index].earnings / dayData[index].count) : 0,
+      count: dayData[index]?.count || 0
+    }));
+  }, [filteredShiftsByYear, jobs]);
+
+  // Job earnings breakdown (for pie chart)
+  const jobEarningsBreakdown = useMemo(() => {
+    if (!filteredShiftsByYear || !jobs) return [];
+
+    const jobData: Record<string, { name: string; value: number; color: string }> = {};
+
+    filteredShiftsByYear.forEach(shift => {
+      const job = jobs.find(j => j.id === shift.job_id);
+      if (!job) return;
+
+      if (!jobData[job.id]) {
+        jobData[job.id] = { name: job.name, value: 0, color: job.color || '#3B82F6' };
+      }
+
+      const hours = Number(shift.hours) || 0;
+      const earnings = hours * (job.hourly_rate || 0) * 0.67;
+      jobData[job.id].value += earnings;
+    });
+
+    return Object.values(jobData)
+      .map(item => ({ ...item, value: Math.round(item.value) }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredShiftsByYear, jobs]);
 
   // Monthly statistics
   const monthlyStats = useMemo(() => {
-    if (!shifts || !jobs) return [];
+    if (!filteredShiftsByYear || !jobs) return [];
     
     const monthlyData: Record<string, { hours: number; salary: number; sortKey: string }> = {};
     
-    shifts.forEach(shift => {
+    filteredShiftsByYear.forEach(shift => {
       const date = parseISO(shift.date);
       const monthKey = format(date, 'yyyy-MM', { locale: sv });
       const monthName = format(date, 'MMMM yyyy', { locale: sv });
@@ -104,15 +199,43 @@ const Statistics = () => {
         sortKey: key
       }))
       .sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-  }, [shifts, jobs]);
+  }, [filteredShiftsByYear, jobs]);
 
-  // Weekly statistics
+  // Best performing months
+  const bestMonths = useMemo(() => {
+    return [...monthlyStats]
+      .sort((a, b) => b.salary - a.salary)
+      .slice(0, 3);
+  }, [monthlyStats]);
+
+  // Export to CSV functionality
+  const exportToCSV = () => {
+    if (!monthlyStats.length) {
+      toast({ title: "Ingen data att exportera", variant: "destructive" });
+      return;
+    }
+
+    const csvContent = [
+      ['Månad', 'Timmar', 'Lön (kr)'],
+      ...monthlyStats.map(stat => [stat.month, stat.hours.toFixed(1), stat.salary.toString()])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `statistik_${selectedYear !== 'all' ? selectedYear : 'alla_år'}.csv`;
+    link.click();
+
+    toast({ title: "Data exporterad", description: "CSV-fil nedladdad" });
+  };
+
+  // Weekly statistics  
   const weeklyStats = useMemo(() => {
-    if (!shifts || !jobs) return [];
+    if (!filteredShiftsByYear || !jobs) return [];
     
     const weeklyData: Record<string, { hours: number; salary: number }> = {};
     
-    shifts.forEach(shift => {
+    filteredShiftsByYear.forEach(shift => {
       const date = parseISO(shift.date);
       const year = getYear(date);
       const weekNumber = getWeek(date, { weekStartsOn: 1 });
@@ -153,13 +276,13 @@ const Statistics = () => {
         salary: Math.round(data.salary)
       }))
       .sort((a, b) => a.week.localeCompare(b.week));
-  }, [shifts, jobs]);
+  }, [filteredShiftsByYear, jobs]);
 
   // Future shifts
   const futureShifts = useMemo(() => {
-    if (!shifts || !jobs) return [];
+    if (!filteredShiftsByYear || !jobs) return [];
     
-    return shifts
+    return filteredShiftsByYear
       .filter(shift => isFuture(parseISO(shift.date)))
       .map(shift => {
         const job = jobs.find(j => j.id === shift.job_id);
@@ -169,15 +292,15 @@ const Statistics = () => {
         };
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [shifts, jobs]);
+  }, [filteredShiftsByYear, jobs]);
 
   // Job-filtered monthly statistics
   const jobFilteredStats = useMemo(() => {
-    if (!shifts || !jobs || selectedJobId === "all") return monthlyStats;
+    if (!filteredShiftsByYear || !jobs || selectedJobId === "all") return monthlyStats;
     
     const monthlyData: Record<string, { hours: number; salary: number; sortKey: string }> = {};
     
-    shifts
+    filteredShiftsByYear
       .filter(shift => shift.job_id === selectedJobId)
       .forEach(shift => {
         const date = parseISO(shift.date);
@@ -219,14 +342,34 @@ const Statistics = () => {
         sortKey: key
       }))
       .sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-  }, [shifts, jobs, selectedJobId, monthlyStats]);
+  }, [filteredShiftsByYear, jobs, selectedJobId, monthlyStats]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Laddar statistik...</div>
+          <div className="mb-8">
+            <Skeleton className="h-10 w-48 mb-2" />
+            <Skeleton className="h-5 w-96" />
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
+            {[1, 2, 3, 4, 5].map(i => (
+              <Card key={i}>
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-32" />
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+
+          <Card>
+            <CardContent className="pt-6">
+              <Skeleton className="h-96 w-full" />
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -237,13 +380,34 @@ const Statistics = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Statistik</h1>
-          <p className="text-muted-foreground">Detaljerad översikt över dina arbetstimmar och intäkter</p>
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-fade-in">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Statistik</h1>
+            <p className="text-muted-foreground">Detaljerad översikt över dina arbetstimmar och intäkter</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Välj år" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alla år</SelectItem>
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Button onClick={exportToCSV} variant="outline" className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Exportera CSV
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8 animate-fade-in">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Totala Timmar</CardTitle>
@@ -251,18 +415,29 @@ const Statistics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summaryStats.totalHours}h</div>
-              <p className="text-xs text-muted-foreground">Alla registrerade skift</p>
+              <p className="text-xs text-muted-foreground">{summaryStats.shiftsCount} skift</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Lön</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Lön (Netto)</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summaryStats.totalSalary.toLocaleString()} kr</div>
-              <p className="text-xs text-muted-foreground">Efter skatt (67%)</p>
+              <div className="text-2xl font-bold text-chart-1">{summaryStats.totalSalaryNet.toLocaleString()} kr</div>
+              <p className="text-xs text-muted-foreground">Efter 33% skatt</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Bruttolön</CardTitle>
+              <Percent className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summaryStats.totalSalaryGross.toLocaleString()} kr</div>
+              <p className="text-xs text-muted-foreground">Inkl. {summaryStats.totalOBGross.toLocaleString()} kr OB</p>
             </CardContent>
           </Card>
           
@@ -273,26 +448,28 @@ const Statistics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summaryStats.avgHourlyRate} kr</div>
-              <p className="text-xs text-muted-foreground">Inkl. OB och efter skatt</p>
+              <p className="text-xs text-muted-foreground">Netto per timme</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Antal Skift</CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Genomsnitt/Skift</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summaryStats.shiftsCount}</div>
-              <p className="text-xs text-muted-foreground">Totalt antal arbetade skift</p>
+              <div className="text-2xl font-bold">{summaryStats.avgPerShift} kr</div>
+              <p className="text-xs text-muted-foreground">Snitt per arbetspass</p>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="monthly" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 lg:w-auto">
             <TabsTrigger value="monthly">Månad</TabsTrigger>
             <TabsTrigger value="weekly">Vecka</TabsTrigger>
+            <TabsTrigger value="performance">Prestanda</TabsTrigger>
+            <TabsTrigger value="dayOfWeek">Veckodagar</TabsTrigger>
             <TabsTrigger value="upcoming">Kommande</TabsTrigger>
             <TabsTrigger value="byJob">Per Jobb</TabsTrigger>
           </TabsList>
@@ -376,6 +553,220 @@ const Statistics = () => {
                     </TableBody>
                   </Table>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Performance Tab */}
+          <TabsContent value="performance" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Best Months */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Trophy className="h-5 w-5 text-chart-3" />
+                    <span>Bästa Månaderna</span>
+                  </CardTitle>
+                  <CardDescription>Top 3 inkomstmånader</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {bestMonths.map((month, index) => (
+                    <div key={month.month} className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                      <div className="flex items-center gap-3">
+                        <Badge variant={index === 0 ? "default" : "secondary"} className="text-lg">
+                          #{index + 1}
+                        </Badge>
+                        <div>
+                          <p className="font-semibold">{month.month}</p>
+                          <p className="text-sm text-muted-foreground">{month.hours.toFixed(1)} timmar</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-chart-1">{month.salary.toLocaleString()} kr</p>
+                      </div>
+                    </div>
+                  ))}
+                  {bestMonths.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">Ingen data tillgänglig</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Job Distribution */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <PieChart className="h-5 w-5 text-chart-2" />
+                    <span>Inkomstfördelning per Jobb</span>
+                  </CardTitle>
+                  <CardDescription>Hur mycket tjänar du på varje jobb?</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {jobEarningsBreakdown.length > 0 ? (
+                    <>
+                      <div className="h-[250px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RePieChart>
+                            <Pie
+                              data={jobEarningsBreakdown}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              outerRadius={80}
+                              fill="#8884d8"
+                              dataKey="value"
+                            >
+                              {jobEarningsBreakdown.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              formatter={(value: number) => `${value.toLocaleString()} kr`}
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                            />
+                          </RePieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="space-y-2 mt-4">
+                        {jobEarningsBreakdown.map((job, index) => (
+                          <div key={index} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: job.color }} />
+                              <span>{job.name}</span>
+                            </div>
+                            <span className="font-semibold">{job.value.toLocaleString()} kr</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-12">Ingen data tillgänglig</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tax Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Percent className="h-5 w-5 text-chart-4" />
+                  <span>Skatteuppdelning</span>
+                </CardTitle>
+                <CardDescription>Brutto vs Netto inkomst</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Bruttolön</p>
+                    <p className="text-3xl font-bold">{summaryStats.totalSalaryGross.toLocaleString()} kr</p>
+                    <p className="text-xs text-muted-foreground">Före skatt</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Skatt (33%)</p>
+                    <p className="text-3xl font-bold text-destructive">-{summaryStats.totalTax.toLocaleString()} kr</p>
+                    <p className="text-xs text-muted-foreground">Preliminär skatt</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Nettolön</p>
+                    <p className="text-3xl font-bold text-chart-1">{summaryStats.totalSalaryNet.toLocaleString()} kr</p>
+                    <p className="text-xs text-muted-foreground">Efter skatt</p>
+                  </div>
+                </div>
+
+                {summaryStats.totalOBGross > 0 && (
+                  <div className="mt-6 p-4 rounded-lg bg-accent/50 border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">OB-Tillägg (Brutto)</p>
+                        <p className="text-xs text-muted-foreground mt-1">Extra ersättning för obekväm arbetstid</p>
+                      </div>
+                      <p className="text-2xl font-bold text-chart-2">{summaryStats.totalOBGross.toLocaleString()} kr</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Day of Week Tab */}
+          <TabsContent value="dayOfWeek" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <CalendarDays className="h-5 w-5" />
+                  <span>Analys per Veckodag</span>
+                </CardTitle>
+                <CardDescription>Se vilka dagar du arbetar mest och tjänar mest på</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px] mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dayOfWeekStats}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="day" className="text-xs" />
+                      <YAxis yAxisId="left" className="text-xs" />
+                      <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                      />
+                      <Legend />
+                      <Bar 
+                        yAxisId="left"
+                        dataKey="hours" 
+                        fill="hsl(var(--chart-1))" 
+                        name="Timmar"
+                        radius={[8, 8, 0, 0]}
+                      />
+                      <Bar 
+                        yAxisId="right"
+                        dataKey="earnings" 
+                        fill="hsl(var(--chart-2))" 
+                        name="Inkomst (kr)"
+                        radius={[8, 8, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Veckodag</TableHead>
+                      <TableHead className="text-right">Timmar</TableHead>
+                      <TableHead className="text-right">Inkomst</TableHead>
+                      <TableHead className="text-right">Antal Pass</TableHead>
+                      <TableHead className="text-right">Snitt/Pass</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dayOfWeekStats.map((stat) => (
+                      <TableRow key={stat.day}>
+                        <TableCell className="font-medium">{stat.day}</TableCell>
+                        <TableCell className="text-right">{stat.hours.toFixed(1)}h</TableCell>
+                        <TableCell className="text-right font-semibold">{stat.earnings.toLocaleString()} kr</TableCell>
+                        <TableCell className="text-right">{stat.count}</TableCell>
+                        <TableCell className="text-right">{stat.avgPerShift} kr</TableCell>
+                      </TableRow>
+                    ))}
+                    {dayOfWeekStats.every(stat => stat.count === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          Ingen data tillgänglig
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </TabsContent>
