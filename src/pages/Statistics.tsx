@@ -380,15 +380,15 @@ const Statistics = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-fade-in">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-fade-in">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Statistik</h1>
-            <p className="text-muted-foreground">Detaljerad översikt över dina arbetstimmar och intäkter</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Statistik</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Detaljerad översikt över dina arbetstimmar och intäkter</p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Välj år" />
               </SelectTrigger>
               <SelectContent>
@@ -399,73 +399,74 @@ const Statistics = () => {
               </SelectContent>
             </Select>
             
-            <Button onClick={exportToCSV} variant="outline" className="flex items-center gap-2">
+            <Button onClick={exportToCSV} variant="outline" className="flex items-center gap-2 w-full sm:w-auto">
               <Download className="h-4 w-4" />
-              Exportera CSV
+              <span className="hidden sm:inline">Exportera CSV</span>
+              <span className="sm:hidden">Exportera</span>
             </Button>
           </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8 animate-fade-in">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 mb-8 animate-fade-in">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Totala Timmar</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Totala Timmar</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summaryStats.totalHours}h</div>
+              <div className="text-xl sm:text-2xl font-bold">{summaryStats.totalHours}h</div>
               <p className="text-xs text-muted-foreground">{summaryStats.shiftsCount} skift</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Lön (Netto)</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Lön (Netto)</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-chart-1">{summaryStats.totalSalaryNet.toLocaleString()} kr</div>
+              <div className="text-xl sm:text-2xl font-bold text-chart-1">{summaryStats.totalSalaryNet.toLocaleString()} kr</div>
               <p className="text-xs text-muted-foreground">Efter 33% skatt</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Bruttolön</CardTitle>
-              <Percent className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Bruttolön</CardTitle>
+              <Percent className="h-4 w-4 text-muted-foreground shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summaryStats.totalSalaryGross.toLocaleString()} kr</div>
+              <div className="text-xl sm:text-2xl font-bold">{summaryStats.totalSalaryGross.toLocaleString()} kr</div>
               <p className="text-xs text-muted-foreground">Inkl. {summaryStats.totalOBGross.toLocaleString()} kr OB</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Genomsnitt/Timme</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Genomsnitt/Timme</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summaryStats.avgHourlyRate} kr</div>
+              <div className="text-xl sm:text-2xl font-bold">{summaryStats.avgHourlyRate} kr</div>
               <p className="text-xs text-muted-foreground">Netto per timme</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Genomsnitt/Skift</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Genomsnitt/Skift</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summaryStats.avgPerShift} kr</div>
+              <div className="text-xl sm:text-2xl font-bold">{summaryStats.avgPerShift} kr</div>
               <p className="text-xs text-muted-foreground">Snitt per arbetspass</p>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="monthly" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 lg:w-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 lg:w-auto gap-1">
             <TabsTrigger value="monthly">Månad</TabsTrigger>
             <TabsTrigger value="weekly">Vecka</TabsTrigger>
             <TabsTrigger value="performance">Prestanda</TabsTrigger>
@@ -484,20 +485,20 @@ const Statistics = () => {
                 </CardTitle>
                 <CardDescription>Timmar och lön per månad</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="h-[400px]">
+              <CardContent className="px-2 sm:px-6">
+                <div className="h-[300px] sm:h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={monthlyStats}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis 
                         dataKey="month" 
-                        className="text-xs"
+                        className="text-[10px] sm:text-xs"
                         angle={-45}
                         textAnchor="end"
                         height={100}
                       />
-                      <YAxis yAxisId="left" className="text-xs" />
-                      <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                      <YAxis yAxisId="left" className="text-[10px] sm:text-xs" />
+                      <YAxis yAxisId="right" orientation="right" className="text-[10px] sm:text-xs" />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--background))',
@@ -530,26 +531,26 @@ const Statistics = () => {
                   </ResponsiveContainer>
                 </div>
                 
-                <div className="mt-6">
+                <div className="mt-6 overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Månad</TableHead>
-                        <TableHead className="text-right">Timmar</TableHead>
-                        <TableHead className="text-right">Lön</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Månad</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Timmar</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Lön</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {monthlyStats.slice(-6).reverse().map((stat) => (
                         <TableRow key={stat.month}>
-                          <TableCell className="font-medium">{stat.month}</TableCell>
-                          <TableCell className="text-right">{stat.hours.toFixed(1)}h</TableCell>
-                          <TableCell className="text-right font-semibold">{stat.salary.toLocaleString()} kr</TableCell>
+                          <TableCell className="font-medium text-xs sm:text-sm">{stat.month}</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm">{stat.hours.toFixed(1)}h</TableCell>
+                          <TableCell className="text-right font-semibold text-xs sm:text-sm">{stat.salary.toLocaleString()} kr</TableCell>
                         </TableRow>
                       ))}
                       {monthlyStats.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8 text-xs sm:text-sm">
                             Ingen data tillgänglig
                           </TableCell>
                         </TableRow>
@@ -563,7 +564,7 @@ const Statistics = () => {
 
           {/* Performance Tab */}
           <TabsContent value="performance" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
               {/* Best Months */}
               <Card>
                 <CardHeader>
@@ -573,20 +574,20 @@ const Statistics = () => {
                   </CardTitle>
                   <CardDescription>Top 3 inkomstmånader</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4">
                   {bestMonths.map((month, index) => (
-                    <div key={month.month} className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                      <div className="flex items-center gap-3">
-                        <Badge variant={index === 0 ? "default" : "secondary"} className="text-lg">
+                    <div key={month.month} className="flex items-center justify-between p-3 sm:p-4 rounded-lg border bg-card">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <Badge variant={index === 0 ? "default" : "secondary"} className="text-base sm:text-lg shrink-0">
                           #{index + 1}
                         </Badge>
-                        <div>
-                          <p className="font-semibold">{month.month}</p>
-                          <p className="text-sm text-muted-foreground">{month.hours.toFixed(1)} timmar</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-xs sm:text-sm truncate">{month.month}</p>
+                          <p className="text-xs text-muted-foreground">{month.hours.toFixed(1)} timmar</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-chart-1">{month.salary.toLocaleString()} kr</p>
+                      <div className="text-right shrink-0 ml-2">
+                        <p className="text-sm sm:text-lg font-bold text-chart-1">{month.salary.toLocaleString()} kr</p>
                       </div>
                     </div>
                   ))}
@@ -605,10 +606,10 @@ const Statistics = () => {
                   </CardTitle>
                   <CardDescription>Hur mycket tjänar du på varje jobb?</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-2 sm:px-6">
                   {jobEarningsBreakdown.length > 0 ? (
                     <>
-                      <div className="h-[250px]">
+                      <div className="h-[200px] sm:h-[250px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <RePieChart>
                             <Pie
@@ -617,7 +618,7 @@ const Statistics = () => {
                               cy="50%"
                               labelLine={false}
                               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                              outerRadius={80}
+                              outerRadius={60}
                               fill="#8884d8"
                               dataKey="value"
                               stroke="hsl(var(--background))"
@@ -644,12 +645,12 @@ const Statistics = () => {
                       </div>
                       <div className="space-y-2 mt-4">
                         {jobEarningsBreakdown.map((job, index) => (
-                          <div key={index} className="flex items-center justify-between text-sm">
+                          <div key={index} className="flex items-center justify-between text-xs sm:text-sm">
                             <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: job.color }} />
-                              <span>{job.name}</span>
+                              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: job.color }} />
+                              <span className="truncate">{job.name}</span>
                             </div>
-                            <span className="font-semibold">{job.value.toLocaleString()} kr</span>
+                            <span className="font-semibold whitespace-nowrap ml-2">{job.value.toLocaleString()} kr</span>
                           </div>
                         ))}
                       </div>
@@ -671,32 +672,32 @@ const Statistics = () => {
                 <CardDescription>Brutto vs Netto inkomst</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Bruttolön</p>
-                    <p className="text-3xl font-bold">{summaryStats.totalSalaryGross.toLocaleString()} kr</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Bruttolön</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{summaryStats.totalSalaryGross.toLocaleString()} kr</p>
                     <p className="text-xs text-muted-foreground">Före skatt</p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Skatt (33%)</p>
-                    <p className="text-3xl font-bold text-destructive">-{summaryStats.totalTax.toLocaleString()} kr</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Skatt (33%)</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-destructive">-{summaryStats.totalTax.toLocaleString()} kr</p>
                     <p className="text-xs text-muted-foreground">Preliminär skatt</p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Nettolön</p>
-                    <p className="text-3xl font-bold text-chart-1">{summaryStats.totalSalaryNet.toLocaleString()} kr</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Nettolön</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-chart-1">{summaryStats.totalSalaryNet.toLocaleString()} kr</p>
                     <p className="text-xs text-muted-foreground">Efter skatt</p>
                   </div>
                 </div>
 
                 {summaryStats.totalOBGross > 0 && (
-                  <div className="mt-6 p-4 rounded-lg bg-accent/50 border">
-                    <div className="flex items-center justify-between">
+                  <div className="mt-6 p-3 sm:p-4 rounded-lg bg-accent/50 border">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                       <div>
-                        <p className="text-sm font-medium">OB-Tillägg (Brutto)</p>
+                        <p className="text-xs sm:text-sm font-medium">OB-Tillägg (Brutto)</p>
                         <p className="text-xs text-muted-foreground mt-1">Extra ersättning för obekväm arbetstid</p>
                       </div>
-                      <p className="text-2xl font-bold text-chart-2">{summaryStats.totalOBGross.toLocaleString()} kr</p>
+                      <p className="text-xl sm:text-2xl font-bold text-chart-2">{summaryStats.totalOBGross.toLocaleString()} kr</p>
                     </div>
                   </div>
                 )}
@@ -714,14 +715,14 @@ const Statistics = () => {
                 </CardTitle>
                 <CardDescription>Se vilka dagar du arbetar mest och tjänar mest på</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="h-[400px] mb-6">
+              <CardContent className="px-2 sm:px-6">
+                <div className="h-[300px] sm:h-[400px] mb-6">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dayOfWeekStats}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="day" className="text-xs" />
-                      <YAxis yAxisId="left" className="text-xs" />
-                      <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                      <XAxis dataKey="day" className="text-[10px] sm:text-xs" />
+                      <YAxis yAxisId="left" className="text-[10px] sm:text-xs" />
+                      <YAxis yAxisId="right" orientation="right" className="text-[10px] sm:text-xs" />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--background))',
@@ -751,35 +752,37 @@ const Statistics = () => {
                   </ResponsiveContainer>
                 </div>
 
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Veckodag</TableHead>
-                      <TableHead className="text-right">Timmar</TableHead>
-                      <TableHead className="text-right">Inkomst</TableHead>
-                      <TableHead className="text-right">Antal Pass</TableHead>
-                      <TableHead className="text-right">Snitt/Pass</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {dayOfWeekStats.map((stat) => (
-                      <TableRow key={stat.day}>
-                        <TableCell className="font-medium">{stat.day}</TableCell>
-                        <TableCell className="text-right">{stat.hours.toFixed(1)}h</TableCell>
-                        <TableCell className="text-right font-semibold">{stat.earnings.toLocaleString()} kr</TableCell>
-                        <TableCell className="text-right">{stat.count}</TableCell>
-                        <TableCell className="text-right">{stat.avgPerShift} kr</TableCell>
-                      </TableRow>
-                    ))}
-                    {dayOfWeekStats.every(stat => stat.count === 0) && (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                          Ingen data tillgänglig
-                        </TableCell>
+                        <TableHead className="text-xs sm:text-sm">Veckodag</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Timmar</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Inkomst</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Antal Pass</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Snitt/Pass</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {dayOfWeekStats.map((stat) => (
+                        <TableRow key={stat.day}>
+                          <TableCell className="font-medium text-xs sm:text-sm">{stat.day}</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm">{stat.hours.toFixed(1)}h</TableCell>
+                          <TableCell className="text-right font-semibold text-xs sm:text-sm">{stat.earnings.toLocaleString()} kr</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm">{stat.count}</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm">{stat.avgPerShift} kr</TableCell>
+                        </TableRow>
+                      ))}
+                      {dayOfWeekStats.every(stat => stat.count === 0) && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8 text-xs sm:text-sm">
+                            Ingen data tillgänglig
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -794,20 +797,20 @@ const Statistics = () => {
                 </CardTitle>
                 <CardDescription>Timmar och lön per vecka</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="h-[400px]">
+              <CardContent className="px-2 sm:px-6">
+                <div className="h-[300px] sm:h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={weeklyStats.slice(-12)}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis 
                         dataKey="week" 
-                        className="text-xs"
+                        className="text-[10px] sm:text-xs"
                         angle={-45}
                         textAnchor="end"
                         height={80}
                       />
-                      <YAxis yAxisId="left" className="text-xs" />
-                      <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                      <YAxis yAxisId="left" className="text-[10px] sm:text-xs" />
+                      <YAxis yAxisId="right" orientation="right" className="text-[10px] sm:text-xs" />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--background))',
@@ -838,26 +841,26 @@ const Statistics = () => {
                   </ResponsiveContainer>
                 </div>
                 
-                <div className="mt-6">
+                <div className="mt-6 overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Vecka</TableHead>
-                        <TableHead className="text-right">Timmar</TableHead>
-                        <TableHead className="text-right">Lön</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Vecka</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Timmar</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Lön</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {weeklyStats.slice(-8).reverse().map((stat) => (
                         <TableRow key={stat.week}>
-                          <TableCell className="font-medium">{stat.week}</TableCell>
-                          <TableCell className="text-right">{stat.hours.toFixed(1)}h</TableCell>
-                          <TableCell className="text-right font-semibold">{stat.salary.toLocaleString()} kr</TableCell>
+                          <TableCell className="font-medium text-xs sm:text-sm">{stat.week}</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm">{stat.hours.toFixed(1)}h</TableCell>
+                          <TableCell className="text-right font-semibold text-xs sm:text-sm">{stat.salary.toLocaleString()} kr</TableCell>
                         </TableRow>
                       ))}
                       {weeklyStats.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8 text-xs sm:text-sm">
                             Ingen data tillgänglig
                           </TableCell>
                         </TableRow>
@@ -884,34 +887,36 @@ const Statistics = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Jobb</TableHead>
-                      <TableHead>Datum</TableHead>
-                      <TableHead>Tid</TableHead>
-                      <TableHead className="text-right">Timmar</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {futureShifts.map((shift) => (
-                      <TableRow key={shift.id}>
-                        <TableCell className="font-medium">{shift.jobName}</TableCell>
-                        <TableCell>{format(parseISO(shift.date), 'PPP', { locale: sv })}</TableCell>
-                        <TableCell>{shift.start_time} - {shift.end_time}</TableCell>
-                        <TableCell className="text-right">{Number(shift.hours).toFixed(1)}h</TableCell>
-                      </TableRow>
-                    ))}
-                    {futureShifts.length === 0 && (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
-                          <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                          <p>Inga kommande skift planerade</p>
-                        </TableCell>
+                        <TableHead className="text-xs sm:text-sm">Jobb</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Datum</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Tid</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Timmar</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {futureShifts.map((shift) => (
+                        <TableRow key={shift.id}>
+                          <TableCell className="font-medium text-xs sm:text-sm">{shift.jobName}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{format(parseISO(shift.date), 'PPP', { locale: sv })}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{shift.start_time} - {shift.end_time}</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm">{Number(shift.hours).toFixed(1)}h</TableCell>
+                        </TableRow>
+                      ))}
+                      {futureShifts.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
+                            <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                            <p className="text-xs sm:text-sm">Inga kommande skift planerade</p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -941,19 +946,19 @@ const Statistics = () => {
                   </Select>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="h-[300px] mb-6">
+              <CardContent className="px-2 sm:px-6">
+                <div className="h-[250px] sm:h-[300px] mb-6">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={jobFilteredStats}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis 
                         dataKey="month" 
-                        className="text-xs"
+                        className="text-[10px] sm:text-xs"
                         angle={-45}
                         textAnchor="end"
                         height={100}
                       />
-                      <YAxis className="text-xs" />
+                      <YAxis className="text-[10px] sm:text-xs" />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--background))',
@@ -976,33 +981,35 @@ const Statistics = () => {
                   </ResponsiveContainer>
                 </div>
                 
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Månad</TableHead>
-                      <TableHead className="text-right">Timmar</TableHead>
-                      <TableHead className="text-right">Lön</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {jobFilteredStats.slice(-6).reverse().map((stat) => (
-                      <TableRow key={stat.month}>
-                        <TableCell className="font-medium">{stat.month}</TableCell>
-                        <TableCell className="text-right">{stat.hours.toFixed(1)}h</TableCell>
-                        <TableCell className="text-right font-semibold">{stat.salary.toLocaleString()} kr</TableCell>
-                      </TableRow>
-                    ))}
-                    {jobFilteredStats.length === 0 && (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                          {selectedJobId === "all" 
-                            ? "Ingen data tillgänglig" 
-                            : "Ingen data för valt jobb"}
-                        </TableCell>
+                        <TableHead className="text-xs sm:text-sm">Månad</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Timmar</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Lön</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {jobFilteredStats.slice(-6).reverse().map((stat) => (
+                        <TableRow key={stat.month}>
+                          <TableCell className="font-medium text-xs sm:text-sm">{stat.month}</TableCell>
+                          <TableCell className="text-right text-xs sm:text-sm">{stat.hours.toFixed(1)}h</TableCell>
+                          <TableCell className="text-right font-semibold text-xs sm:text-sm">{stat.salary.toLocaleString()} kr</TableCell>
+                        </TableRow>
+                      ))}
+                      {jobFilteredStats.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8 text-xs sm:text-sm">
+                            {selectedJobId === "all" 
+                              ? "Ingen data tillgänglig" 
+                              : "Ingen data för valt jobb"}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
