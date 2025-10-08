@@ -10,9 +10,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Header from "@/components/Header";
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
-import { EditShiftDialog } from "@/components/shifts/EditShiftDialog";
-import { CopyShiftDialog } from "@/components/shifts/CopyShiftDialog";
+import { ShiftDetailsDialog } from "@/components/shifts/ShiftDetailsDialog";
 import { AddShiftDialog } from "@/components/shifts/AddShiftDialog";
+import { TaskDetailsDialog } from "@/components/tasks/TaskDetailsDialog";
 import { AddTaskDialog } from "@/components/tasks/AddTaskDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useShifts } from "@/hooks/useShifts";
@@ -25,10 +25,10 @@ const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [externalEvents, setExternalEvents] = useState<ICalEvent[]>([]);
   const [selectedShift, setSelectedShift] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [shiftActionDialogOpen, setShiftActionDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [shiftDetailsDialogOpen, setShiftDetailsDialogOpen] = useState(false);
+  const [taskDetailsDialogOpen, setTaskDetailsDialogOpen] = useState(false);
   const [addShiftDialogOpen, setAddShiftDialogOpen] = useState(false);
   const [addTaskDialogOpen, setAddTaskDialogOpen] = useState(false);
   const [newItemDialogOpen, setNewItemDialogOpen] = useState(false);
@@ -196,29 +196,17 @@ const Calendar = () => {
 
   const handleShiftClick = (shift: any) => {
     setSelectedShift(shift);
-    setShiftActionDialogOpen(true);
+    setShiftDetailsDialogOpen(true);
+  };
+
+  const handleTaskClick = (task: any) => {
+    setSelectedTask(task);
+    setTaskDetailsDialogOpen(true);
   };
 
   const handleDayClick = (date: Date) => {
     setSelectedDate(date);
     setNewItemDialogOpen(true);
-  };
-
-  const handleEditShift = () => {
-    setShiftActionDialogOpen(false);
-    setEditDialogOpen(true);
-  };
-
-  const handleCopyShift = () => {
-    setShiftActionDialogOpen(false);
-    setCopyDialogOpen(true);
-  };
-
-  const handleAddNewShift = () => {
-    setShiftActionDialogOpen(false);
-    const shiftDate = new Date(selectedShift.date);
-    setSelectedDate(shiftDate);
-    setAddShiftDialogOpen(true);
   };
 
   const handleAddShift = () => {
@@ -343,6 +331,10 @@ const Calendar = () => {
                               ? "bg-green-100 text-green-800 line-through" 
                               : "bg-orange-100 text-orange-800"
                           }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTaskClick(task);
+                          }}
                           title={task.title}
                         >
                           <div className="font-medium truncate">{task.title}</div>
@@ -433,6 +425,10 @@ const Calendar = () => {
                                             ? "bg-green-100 text-green-800 line-through" 
                                             : "bg-orange-100 text-orange-800"
                                         }`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleTaskClick(task);
+                                        }}
                                       >
                                         <div className="font-medium">{task.title}</div>
                                         <div className="text-xs opacity-75">{task.category}</div>
@@ -524,25 +520,19 @@ const Calendar = () => {
 
       {/* Dialogs */}
       
-      {/* Shift Action Dialog */}
-      <Dialog open={shiftActionDialogOpen} onOpenChange={setShiftActionDialogOpen}>
-        <DialogContent className="bg-background border border-border">
-          <DialogHeader>
-            <DialogTitle>Vad vill du göra?</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col space-y-3">
-            <Button onClick={handleEditShift} variant="default">
-              Redigera skift
-            </Button>
-            <Button onClick={handleCopyShift} variant="outline">
-              Kopiera skift
-            </Button>
-            <Button onClick={handleAddNewShift} variant="outline">
-              Lägg till nytt skift
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Shift Details Dialog */}
+      <ShiftDetailsDialog
+        open={shiftDetailsDialogOpen}
+        onOpenChange={setShiftDetailsDialogOpen}
+        shift={selectedShift}
+      />
+
+      {/* Task Details Dialog */}
+      <TaskDetailsDialog
+        open={taskDetailsDialogOpen}
+        onOpenChange={setTaskDetailsDialogOpen}
+        task={selectedTask}
+      />
 
       {/* New Item Dialog */}
       <Dialog open={newItemDialogOpen} onOpenChange={setNewItemDialogOpen}>
@@ -561,23 +551,11 @@ const Calendar = () => {
         </DialogContent>
       </Dialog>
       
-      <EditShiftDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        shift={selectedShift}
+      <AddShiftDialog 
+        open={addShiftDialogOpen} 
+        onOpenChange={setAddShiftDialogOpen}
+        selectedDate={selectedDate}
       />
-      
-      <CopyShiftDialog
-        open={copyDialogOpen}
-        onOpenChange={setCopyDialogOpen}
-        shift={selectedShift}
-      />
-      
-              <AddShiftDialog 
-                open={addShiftDialogOpen} 
-                onOpenChange={setAddShiftDialogOpen}
-                selectedDate={selectedDate}
-              />
       
       <AddTaskDialog
         open={addTaskDialogOpen}
