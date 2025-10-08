@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, parseISO } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { sv } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { parseICalData, ICalEvent } from "@/utils/icalParser";
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   const [externalEvents, setExternalEvents] = useState<ICalEvent[]>([]);
   const [selectedShift, setSelectedShift] = useState<any>(null);
   const [selectedTask, setSelectedTask] = useState<any>(null);
@@ -169,13 +170,27 @@ const Calendar = () => {
   const monthEnd = endOfMonth(currentDate);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  const previousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+  const previousPeriod = () => {
+    if (viewMode === 'month') {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    } else {
+      setCurrentDate(subWeeks(currentDate, 1));
+    }
   };
 
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const nextPeriod = () => {
+    if (viewMode === 'month') {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    } else {
+      setCurrentDate(addWeeks(currentDate, 1));
+    }
   };
+
+  const displayDays = viewMode === 'month' ? monthDays : weekDays;
 
   const getShiftsForDate = (date: Date) => {
     if (!shifts) return [];
@@ -254,20 +269,63 @@ const Calendar = () => {
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
             <div className="flex items-center justify-center sm:justify-start space-x-2">
-              <Button variant="outline" size="sm" onClick={previousMonth}>
+              <Button variant="outline" size="sm" onClick={previousPeriod}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <h2 className="text-base sm:text-xl font-semibold min-w-[140px] sm:min-w-[200px] text-center">
-                {format(currentDate, "MMMM yyyy", { locale: sv })}
+                {viewMode === 'month' 
+                  ? format(currentDate, "MMMM yyyy", { locale: sv })
+                  : `${format(weekStart, "d MMM", { locale: sv })} - ${format(weekEnd, "d MMM yyyy", { locale: sv })}`
+                }
               </h2>
-              <Button variant="outline" size="sm" onClick={nextMonth}>
+              <Button variant="outline" size="sm" onClick={nextPeriod}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
             
             <div className="hidden sm:flex space-x-2">
+              <div className="flex border rounded-md">
+                <Button 
+                  variant={viewMode === 'month' ? 'default' : 'ghost'} 
+                  size="sm"
+                  onClick={() => setViewMode('month')}
+                  className="rounded-r-none"
+                >
+                  Månad
+                </Button>
+                <Button 
+                  variant={viewMode === 'week' ? 'default' : 'ghost'} 
+                  size="sm"
+                  onClick={() => setViewMode('week')}
+                  className="rounded-l-none"
+                >
+                  Vecka
+                </Button>
+              </div>
               <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
               <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} deleteShift={deleteShift} shifts={shifts} />
+            </div>
+          </div>
+          
+          {/* Mobile view mode toggle */}
+          <div className="flex sm:hidden justify-center">
+            <div className="flex border rounded-md">
+              <Button 
+                variant={viewMode === 'month' ? 'default' : 'ghost'} 
+                size="sm"
+                onClick={() => setViewMode('month')}
+                className="rounded-r-none"
+              >
+                Månad
+              </Button>
+              <Button 
+                variant={viewMode === 'week' ? 'default' : 'ghost'} 
+                size="sm"
+                onClick={() => setViewMode('week')}
+                className="rounded-l-none"
+              >
+                Vecka
+              </Button>
             </div>
           </div>
         </div>
@@ -286,13 +344,13 @@ const Calendar = () => {
                 </div>
               ))}
               
-              {/* Empty cells for days before month start */}
-              {Array.from({ length: (monthStart.getDay() + 6) % 7 }).map((_, index) => (
+              {/* Empty cells for days before month start (only in month view) */}
+              {viewMode === 'month' && Array.from({ length: (monthStart.getDay() + 6) % 7 }).map((_, index) => (
                 <div key={`empty-${index}`} className="h-16 sm:h-32 bg-muted/20"></div>
               ))}
 
-              {/* Month Days */}
-              {monthDays.map(day => {
+              {/* Days (Month or Week) */}
+              {displayDays.map(day => {
                 const dayShifts = getShiftsForDate(day);
                 const dayTasks = getTasksForDate(day);
                 const dayExternalEvents = getExternalEventsForDate(day);
@@ -300,12 +358,13 @@ const Calendar = () => {
                 const hasItems = dayShifts.length > 0 || dayTasks.length > 0 || dayExternalEvents.length > 0;
                 const totalItems = dayShifts.length + dayTasks.length + dayExternalEvents.length;
                 const hasOverflow = dayShifts.length > 2 || dayTasks.length > 1 || dayExternalEvents.length > 1;
+                const cellHeight = viewMode === 'week' ? 'h-32 sm:h-48' : 'h-16 sm:h-32';
 
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`h-16 sm:h-32 p-0.5 sm:p-1 relative bg-background cursor-pointer transition-colors hover:bg-muted/50 ${
-                      !isSameMonth(day, currentDate) ? "bg-muted/30 opacity-50" : ""
+                    className={`${cellHeight} p-0.5 sm:p-1 relative bg-background cursor-pointer transition-colors hover:bg-muted/50 ${
+                      viewMode === 'month' && !isSameMonth(day, currentDate) ? "bg-muted/30 opacity-50" : ""
                     } ${isToday ? "bg-primary/5 ring-1 ring-primary/20" : ""}`}
                     onClick={() => handleDayClick(day)}
                   >
@@ -314,8 +373,8 @@ const Calendar = () => {
                     </div>
                     
                     <div className="space-y-0.5 overflow-hidden">
-                      {/* Shifts - show 1 on mobile, 3 on desktop */}
-                      {dayShifts.slice(0, 1).map(shift => (
+                      {/* Shifts - show more in week view */}
+                      {dayShifts.slice(0, viewMode === 'week' ? 2 : 1).map(shift => (
                         <div
                           key={shift.id}
                           className="text-[9px] sm:text-xs p-0.5 sm:p-1 rounded-sm truncate cursor-pointer hover:opacity-80 transition-opacity sm:block"
@@ -332,7 +391,7 @@ const Calendar = () => {
                           <div className="font-medium truncate leading-tight">{shift.jobs?.name}</div>
                         </div>
                       ))}
-                      {dayShifts.slice(1, 3).map(shift => (
+                      {dayShifts.slice(viewMode === 'week' ? 2 : 1, viewMode === 'week' ? 5 : 3).map(shift => (
                         <div
                           key={shift.id}
                           className="hidden sm:block text-xs p-1 rounded-sm truncate cursor-pointer hover:opacity-80 transition-opacity"
@@ -353,8 +412,8 @@ const Calendar = () => {
                         </div>
                       ))}
 
-                      {/* Tasks - show dots on mobile, 1-2 on desktop */}
-                      {dayTasks.slice(0, 1).map(task => (
+                      {/* Tasks - show more in week view */}
+                      {dayTasks.slice(0, viewMode === 'week' ? 2 : 1).map(task => (
                         <div
                           key={task.id}
                           className="text-[9px] sm:text-xs p-0.5 sm:p-1 rounded-sm truncate cursor-pointer hover:opacity-80 text-white"
@@ -373,7 +432,7 @@ const Calendar = () => {
                           </div>
                         </div>
                       ))}
-                      {dayTasks.slice(1, 2).map(task => (
+                      {dayTasks.slice(viewMode === 'week' ? 2 : 1, viewMode === 'week' ? 4 : 2).map(task => (
                         <div
                           key={task.id}
                           className="hidden sm:block text-xs p-1 rounded-sm truncate cursor-pointer hover:opacity-80 text-white"
@@ -395,7 +454,7 @@ const Calendar = () => {
                     </div>
 
                     {/* Overflow indicator with detailed view */}
-                    {totalItems > 2 && (
+                    {totalItems > (viewMode === 'week' ? 6 : 2) && (
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -404,7 +463,7 @@ const Calendar = () => {
                             className="absolute bottom-0 left-0 right-0 h-4 sm:h-5 w-full p-0 text-[8px] sm:text-xs bg-background/90 hover:bg-background/95 border-t"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            +{totalItems - 2}
+                            +{totalItems - (viewMode === 'week' ? 6 : 2)}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-80 p-0" align="start">
