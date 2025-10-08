@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useShifts } from "@/hooks/useShifts";
 import { useTasks } from "@/hooks/useTasks";
 import { useJobs } from "@/hooks/useJobs";
+import { useCategories } from "@/hooks/useCategories";
 import { useToast } from "@/hooks/use-toast";
 import { parseICalData, ICalEvent } from "@/utils/icalParser";
 
@@ -35,6 +36,7 @@ const Calendar = () => {
   const { shifts, isLoading: shiftsLoading, createShift, deleteShift } = useShifts();
   const { tasks, isLoading: tasksLoading } = useTasks();
   const { jobs, createJob } = useJobs();
+  const { categories } = useCategories();
   const { toast } = useToast();
 
   // Load external calendar events on component mount
@@ -194,6 +196,11 @@ const Calendar = () => {
     return job?.color || "#3B82F6";
   };
 
+  const getCategoryColor = (categoryName: string) => {
+    const category = categories?.find(c => c.name === categoryName);
+    return category?.color || "#F59E0B";
+  };
+
   const handleShiftClick = (shift: any) => {
     setSelectedShift(shift);
     setShiftDetailsDialogOpen(true);
@@ -350,10 +357,10 @@ const Calendar = () => {
                       {dayTasks.slice(0, 1).map(task => (
                         <div
                           key={task.id}
-                          className="text-[9px] sm:text-xs p-0.5 sm:p-1 rounded-sm truncate cursor-pointer hover:opacity-80"
+                          className="text-[9px] sm:text-xs p-0.5 sm:p-1 rounded-sm truncate cursor-pointer hover:opacity-80 text-white"
                           style={{
-                            backgroundColor: task.completed ? 'hsl(var(--success) / 0.2)' : 'hsl(var(--warning) / 0.2)',
-                            color: task.completed ? 'hsl(var(--success))' : 'hsl(var(--warning))'
+                            backgroundColor: task.completed ? '#6B7280' : getCategoryColor(task.category),
+                            opacity: task.completed ? 0.6 : 1
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -369,10 +376,10 @@ const Calendar = () => {
                       {dayTasks.slice(1, 2).map(task => (
                         <div
                           key={task.id}
-                          className="hidden sm:block text-xs p-1 rounded-sm truncate cursor-pointer hover:opacity-80"
+                          className="hidden sm:block text-xs p-1 rounded-sm truncate cursor-pointer hover:opacity-80 text-white"
                           style={{
-                            backgroundColor: task.completed ? 'hsl(var(--success) / 0.2)' : 'hsl(var(--warning) / 0.2)',
-                            color: task.completed ? 'hsl(var(--success))' : 'hsl(var(--warning))'
+                            backgroundColor: task.completed ? '#6B7280' : getCategoryColor(task.category),
+                            opacity: task.completed ? 0.6 : 1
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -449,28 +456,28 @@ const Calendar = () => {
                                     <CheckCircle2 className="h-4 w-4 text-orange-600" />
                                     <h5 className="font-medium text-sm">Uppgifter ({dayTasks.length})</h5>
                                   </div>
-                                  <div className="space-y-1">
-                                    {dayTasks.map(task => (
-                                      <div
-                                        key={task.id}
-                                        className={`text-xs p-2 rounded cursor-pointer hover:opacity-80 ${
-                                          task.completed 
-                                            ? "bg-green-100 text-green-800 line-through" 
-                                            : "bg-orange-100 text-orange-800"
-                                        }`}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleTaskClick(task);
-                                        }}
-                                      >
-                                        <div className="font-medium">{task.title}</div>
-                                        <div className="text-xs opacity-75">{task.category}</div>
-                                        {task.description && (
-                                          <div className="text-xs opacity-80 mt-1">{task.description}</div>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
+                                   <div className="space-y-1">
+                                     {dayTasks.map(task => (
+                                       <div
+                                         key={task.id}
+                                         className="text-xs p-2 rounded cursor-pointer hover:opacity-80 text-white"
+                                         style={{
+                                           backgroundColor: task.completed ? '#6B7280' : getCategoryColor(task.category),
+                                           opacity: task.completed ? 0.6 : 1
+                                         }}
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           handleTaskClick(task);
+                                         }}
+                                       >
+                                         <div className={`font-medium ${task.completed ? 'line-through' : ''}`}>{task.title}</div>
+                                         <div className="text-xs opacity-90">{task.category}</div>
+                                         {task.description && (
+                                           <div className="text-xs opacity-80 mt-1">{task.description}</div>
+                                         )}
+                                       </div>
+                                     ))}
+                                   </div>
                                 </div>
                               )}
 
