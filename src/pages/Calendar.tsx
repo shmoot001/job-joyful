@@ -236,46 +236,52 @@ const Calendar = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="max-w-7xl mx-auto p-3 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
-          <h1 className="text-2xl sm:text-3xl font-bold">Kalender</h1>
-          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
-            <div className="flex space-x-2">
+        <div className="flex flex-col space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl sm:text-3xl font-bold">Kalender</h1>
+            <div className="flex sm:hidden space-x-1">
               <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
               <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} deleteShift={deleteShift} shifts={shifts} />
             </div>
-            <div className="flex items-center space-x-2">
+          </div>
+          
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+            <div className="flex items-center justify-center sm:justify-start space-x-2">
               <Button variant="outline" size="sm" onClick={previousMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <h2 className="text-lg sm:text-xl font-semibold min-w-[160px] sm:min-w-[200px] text-center">
+              <h2 className="text-base sm:text-xl font-semibold min-w-[140px] sm:min-w-[200px] text-center">
                 {format(currentDate, "MMMM yyyy", { locale: sv })}
               </h2>
               <Button variant="outline" size="sm" onClick={nextMonth}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
+            
+            <div className="hidden sm:flex space-x-2">
+              <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
+              <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} deleteShift={deleteShift} shifts={shifts} />
+            </div>
           </div>
         </div>
 
         <Card>
-          <CardHeader className="sm:hidden">
-            <CardTitle className="text-center">
-              {format(currentDate, "MMMM yyyy", { locale: sv })}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-2 sm:p-6">
+          <CardContent className="p-1 sm:p-6">
             {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-px sm:gap-1">
+            <div className="grid grid-cols-7 gap-px bg-border sm:gap-1">
               {/* Day Headers */}
-              {["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"].map(day => (
-                <div key={day} className="p-1 sm:p-2 text-center text-xs sm:text-sm font-semibold text-muted-foreground border-b">
-                  {day}
+              {["M", "T", "O", "T", "F", "L", "S"].map((day, index) => (
+                <div key={day + index} className="p-1 sm:p-2 text-center text-[10px] sm:text-sm font-semibold text-muted-foreground bg-background">
+                  <span className="hidden sm:inline">
+                    {["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"][index]}
+                  </span>
+                  <span className="sm:hidden">{day}</span>
                 </div>
               ))}
               
               {/* Empty cells for days before month start */}
               {Array.from({ length: (monthStart.getDay() + 6) % 7 }).map((_, index) => (
-                <div key={`empty-${index}`} className="h-20 sm:h-32 border border-border/50 bg-muted/20"></div>
+                <div key={`empty-${index}`} className="h-16 sm:h-32 bg-muted/20"></div>
               ))}
 
               {/* Month Days */}
@@ -291,23 +297,41 @@ const Calendar = () => {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`h-20 sm:h-32 border border-border/50 p-0.5 sm:p-1 relative ${
-                      !isSameMonth(day, currentDate) ? "bg-muted/30" : ""
-                    } ${isToday ? "bg-primary/10" : ""}`}
+                    className={`h-16 sm:h-32 p-0.5 sm:p-1 relative bg-background cursor-pointer transition-colors hover:bg-muted/50 ${
+                      !isSameMonth(day, currentDate) ? "bg-muted/30 opacity-50" : ""
+                    } ${isToday ? "bg-primary/5 ring-1 ring-primary/20" : ""}`}
+                    onClick={() => handleDayClick(day)}
                   >
-                    <div className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${isToday ? "text-primary" : ""}`}>
+                    <div className={`text-[11px] sm:text-sm font-medium mb-0.5 sm:mb-1 text-center sm:text-left ${isToday ? "text-primary font-bold" : ""}`}>
                       {format(day, "d")}
                     </div>
                     
-                    <div className="space-y-0.5 sm:space-y-1">
-                      {/* Shifts - show limited on mobile, more on desktop */}
-                      {dayShifts.slice(0, window.innerWidth < 640 ? 1 : 3).map(shift => (
+                    <div className="space-y-0.5 overflow-hidden">
+                      {/* Shifts - show 1 on mobile, 3 on desktop */}
+                      {dayShifts.slice(0, 1).map(shift => (
                         <div
                           key={shift.id}
-                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity text-white"
+                          className="text-[9px] sm:text-xs p-0.5 sm:p-1 rounded-sm truncate cursor-pointer hover:opacity-80 transition-opacity sm:block"
                           style={{ 
                             backgroundColor: getJobColor(shift.job_id),
-                            borderLeft: `3px solid ${getJobColor(shift.job_id)}`
+                            color: 'white'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShiftClick(shift);
+                          }}
+                          title={`${shift.jobs?.name} - ${shift.start_time}-${shift.end_time}`}
+                        >
+                          <div className="font-medium truncate leading-tight">{shift.jobs?.name}</div>
+                        </div>
+                      ))}
+                      {dayShifts.slice(1, 3).map(shift => (
+                        <div
+                          key={shift.id}
+                          className="hidden sm:block text-xs p-1 rounded-sm truncate cursor-pointer hover:opacity-80 transition-opacity"
+                          style={{ 
+                            backgroundColor: getJobColor(shift.job_id),
+                            color: 'white'
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -316,55 +340,64 @@ const Calendar = () => {
                           title={`${shift.jobs?.name} - ${shift.start_time}-${shift.end_time}`}
                         >
                           <div className="font-medium truncate">{shift.jobs?.name}</div>
-                          <div className="text-muted-foreground hidden sm:block">
+                          <div className="opacity-90 text-[10px]">
                             {shift.start_time.slice(0, 5)}-{shift.end_time.slice(0, 5)}
                           </div>
                         </div>
                       ))}
 
-                      {/* Tasks - show limited */}
-                      {dayTasks.slice(0, window.innerWidth < 640 ? 1 : 2).map(task => (
+                      {/* Tasks - show dots on mobile, 1-2 on desktop */}
+                      {dayTasks.slice(0, 1).map(task => (
                         <div
                           key={task.id}
-                          className={`text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 ${
-                            task.completed 
-                              ? "bg-green-100 text-green-800 line-through" 
-                              : "bg-orange-100 text-orange-800"
-                          }`}
+                          className="text-[9px] sm:text-xs p-0.5 sm:p-1 rounded-sm truncate cursor-pointer hover:opacity-80"
+                          style={{
+                            backgroundColor: task.completed ? 'hsl(var(--success) / 0.2)' : 'hsl(var(--warning) / 0.2)',
+                            color: task.completed ? 'hsl(var(--success))' : 'hsl(var(--warning))'
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleTaskClick(task);
                           }}
                           title={task.title}
                         >
-                          <div className="font-medium truncate">{task.title}</div>
-                          <div className="text-[9px] sm:text-xs opacity-75 hidden sm:block">{task.category}</div>
+                          <div className={`font-medium truncate leading-tight ${task.completed ? 'line-through' : ''}`}>
+                            {task.title}
+                          </div>
                         </div>
                       ))}
-
-                      {/* External Calendar Events - show limited */}
-                      {dayExternalEvents.slice(0, window.innerWidth < 640 ? 1 : 2).map(event => (
+                      {dayTasks.slice(1, 2).map(task => (
                         <div
-                          key={event.id}
-                          className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 bg-blue-100 text-blue-800"
-                          title={`${event.title} (${event.calendarName})`}
+                          key={task.id}
+                          className="hidden sm:block text-xs p-1 rounded-sm truncate cursor-pointer hover:opacity-80"
+                          style={{
+                            backgroundColor: task.completed ? 'hsl(var(--success) / 0.2)' : 'hsl(var(--warning) / 0.2)',
+                            color: task.completed ? 'hsl(var(--success))' : 'hsl(var(--warning))'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTaskClick(task);
+                          }}
+                          title={task.title}
                         >
-                          <div className="font-medium truncate">{event.title}</div>
-                          <div className="text-[9px] sm:text-xs opacity-75 hidden sm:block">{event.calendarName}</div>
+                          <div className={`font-medium truncate ${task.completed ? 'line-through' : ''}`}>
+                            {task.title}
+                          </div>
                         </div>
                       ))}
                     </div>
 
                     {/* Overflow indicator with detailed view */}
-                    {hasOverflow && (
+                    {totalItems > 2 && (
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="absolute bottom-0 right-0 h-5 w-full p-0 text-[9px] sm:text-xs bg-background/80 hover:bg-background border-t"
+                            className="absolute bottom-0 left-0 right-0 h-4 sm:h-5 w-full p-0 text-[8px] sm:text-xs bg-background/90 hover:bg-background/95 border-t"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            +{totalItems - (window.innerWidth < 640 ? 3 : 7)} mer
+                            +{totalItems - 2}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-80 p-0" align="start">
