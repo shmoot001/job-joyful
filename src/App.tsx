@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Jobs from "./pages/Jobs";
 import Tasks from "./pages/Tasks";
+import DailyTodo from "./pages/DailyTodo";
 import Shifts from "./pages/Shifts";
 import Calendar from "./pages/Calendar";
 import SalaryDetails from "./pages/SalaryDetails";
@@ -56,7 +57,15 @@ const App = () => (
               } 
             />
             <Route 
-              path="/shifts" 
+              path="/daily-todo" 
+              element={
+                <ProtectedRoute>
+                  <DailyTodo />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/shifts"
               element={
                 <ProtectedRoute>
                   <Shifts />
