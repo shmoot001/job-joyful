@@ -125,8 +125,9 @@ export const useTasks = () => {
 
   const toggleTaskCompleteMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const updates: any = { completed };
-      if (completed) {
+      const newCompletedState = !completed;
+      const updates: any = { completed: newCompletedState };
+      if (newCompletedState) {
         updates.completed_at = new Date().toISOString();
       } else {
         updates.completed_at = null;
