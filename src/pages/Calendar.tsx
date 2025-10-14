@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Header from "@/components/Header";
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
+import SubscribeLinkDialog from "@/components/calendar/SubscribeLinkDialog";
 import { ShiftDetailsDialog } from "@/components/shifts/ShiftDetailsDialog";
 import { AddShiftDialog } from "@/components/shifts/AddShiftDialog";
 import { TaskDetailsDialog } from "@/components/tasks/TaskDetailsDialog";
@@ -259,13 +260,14 @@ const Calendar = () => {
       <Header />
       <div className="max-w-7xl mx-auto p-3 sm:p-6">
         <div className="flex flex-col space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl sm:text-3xl font-bold">Kalender</h1>
-            <div className="flex sm:hidden space-x-1">
-              <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
-              <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} deleteShift={deleteShift} shifts={shifts} />
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl sm:text-3xl font-bold">Kalender</h1>
+              <div className="flex sm:hidden space-x-1">
+                <SubscribeLinkDialog />
+                <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
+                <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} deleteShift={deleteShift} shifts={shifts} />
+              </div>
             </div>
-          </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
             <div className="flex items-center justify-center sm:justify-start space-x-2">
@@ -302,6 +304,7 @@ const Calendar = () => {
                   Vecka
                 </Button>
               </div>
+              <SubscribeLinkDialog />
               <SubscribeCalendarDialog onSubscribe={handleCalendarSubscription} />
               <ManageSubscriptionsDialog onSubscriptionsChange={handleSubscriptionsChange} deleteShift={deleteShift} shifts={shifts} />
             </div>
