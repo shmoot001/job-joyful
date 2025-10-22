@@ -74,7 +74,7 @@ const DailyTodo = () => {
                 <GripVertical className="h-5 w-5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
                 <Checkbox
                   checked={task.completed}
-                  onCheckedChange={() => toggleTaskComplete(task.id, task.completed)}
+                  onCheckedChange={() => toggleTaskComplete(task.id, !task.completed)}
                   className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
                 <span className={`flex-1 text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
