@@ -33,7 +33,7 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task }: TaskDetailsDialo
   };
 
   const handleToggleComplete = () => {
-    toggleTaskComplete(task.id, !task.completed);
+    toggleTaskComplete(task.id, task.completed);
   };
 
   return (
