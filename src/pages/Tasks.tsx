@@ -35,7 +35,7 @@ const Tasks = () => {
   };
 
   const handleToggleComplete = async (taskId: string, completed: boolean) => {
-    await toggleTaskComplete(taskId, !completed);
+    await toggleTaskComplete(taskId, completed);
   };
 
   if (isLoading) {
