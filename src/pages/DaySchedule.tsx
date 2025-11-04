@@ -2,17 +2,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useTasks } from "@/hooks/useTasks";
-import { useShifts } from "@/hooks/useShifts";
+import { useTasks, Task } from "@/hooks/useTasks";
+import { useShifts, Shift } from "@/hooks/useShifts";
 import Header from "@/components/Header";
 import { format, addDays, subDays, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import AddScheduleItemDialog from "@/components/schedule/AddScheduleItemDialog";
+import { TaskDetailsDialog } from "@/components/tasks/TaskDetailsDialog";
+import { ShiftDetailsDialog } from "@/components/shifts/ShiftDetailsDialog";
 
 const DaySchedule = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const { tasks, isLoading: tasksLoading } = useTasks();
   const { shifts, isLoading: shiftsLoading } = useShifts();
 
@@ -43,6 +47,14 @@ const DaySchedule = () => {
 
   const handleToday = () => {
     setSelectedDate(new Date());
+  };
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+  };
+
+  const handleShiftClick = (shift: Shift) => {
+    setSelectedShift(shift);
   };
 
   const getItemsForHour = (hour: number) => {
@@ -150,9 +162,10 @@ const DaySchedule = () => {
                     {items.length > 0 ? (
                       <div className="space-y-1">
                         {items.map((item, idx) => (
-                          <div
+                          <button
                             key={`${item.type}-${idx}`}
-                            className="p-2 rounded-lg text-sm"
+                            onClick={() => item.type === 'task' ? handleTaskClick(item.data) : handleShiftClick(item.data)}
+                            className="w-full p-2 rounded-lg text-sm text-left hover:opacity-80 transition-opacity"
                             style={{
                               backgroundColor: item.type === 'shift' 
                                 ? `${item.data.jobs?.color}20`
@@ -174,7 +187,7 @@ const DaySchedule = () => {
                             {item.type === 'task' && item.data.description && (
                               <div className="text-xs mt-1">{item.data.description}</div>
                             )}
-                          </div>
+                          </button>
                         ))}
                       </div>
                     ) : (
@@ -211,6 +224,22 @@ const DaySchedule = () => {
         selectedDate={selectedDate}
         selectedTime={selectedTime}
       />
+
+      {selectedTask && (
+        <TaskDetailsDialog
+          task={selectedTask}
+          open={!!selectedTask}
+          onOpenChange={(open) => !open && setSelectedTask(null)}
+        />
+      )}
+
+      {selectedShift && (
+        <ShiftDetailsDialog
+          shift={selectedShift}
+          open={!!selectedShift}
+          onOpenChange={(open) => !open && setSelectedShift(null)}
+        />
+      )}
     </div>
   );
 };
