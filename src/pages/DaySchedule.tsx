@@ -58,6 +58,13 @@ const DaySchedule = () => {
       }
     });
 
+    // Add tasks (show at hour 8 for visibility)
+    if (hour === 8) {
+      dayTasks.forEach(task => {
+        items.push({ type: 'task', data: task });
+      });
+    }
+
     return items;
   };
 
@@ -154,15 +161,18 @@ const DaySchedule = () => {
                             }}
                           >
                             <div className="font-medium">
-                              {item.type === 'shift' ? item.data.jobs?.name : 'Uppgift'}
+                              {item.type === 'shift' ? item.data.jobs?.name : item.data.title}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {item.type === 'shift' 
                                 ? `${item.data.start_time.slice(0, 5)} - ${item.data.end_time.slice(0, 5)}`
-                                : ''}
+                                : item.data.category}
                             </div>
                             {item.type === 'shift' && item.data.notes && (
                               <div className="text-xs mt-1">{item.data.notes}</div>
+                            )}
+                            {item.type === 'task' && item.data.description && (
+                              <div className="text-xs mt-1">{item.data.description}</div>
                             )}
                           </div>
                         ))}
