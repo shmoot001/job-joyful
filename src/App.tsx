@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Jobs from "./pages/Jobs";
 import Tasks from "./pages/Tasks";
 import DailyTodo from "./pages/DailyTodo";
+import DaySchedule from "./pages/DaySchedule";
 import Shifts from "./pages/Shifts";
 import Calendar from "./pages/Calendar";
 import SalaryDetails from "./pages/SalaryDetails";
@@ -61,6 +62,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <DailyTodo />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/day-schedule" 
+              element={
+                <ProtectedRoute>
+                  <DaySchedule />
                 </ProtectedRoute>
               } 
             />

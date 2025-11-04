@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogOut, Home, Briefcase, CheckSquare, Clock, Calendar, BarChart, Menu, Dumbbell, TrendingUp, ListTodo } from "lucide-react";
+import { LogOut, Home, Briefcase, CheckSquare, Clock, Calendar, BarChart, Menu, Dumbbell, TrendingUp, ListTodo, CalendarClock } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useState } from "react";
 import {
@@ -31,6 +31,7 @@ const Header = () => {
   const navItems = [
     { path: "/", label: "Hem", icon: Home },
     { path: "/daily-todo", label: "Dagslista", icon: ListTodo },
+    { path: "/day-schedule", label: "Dagschema", icon: CalendarClock },
     { path: "/tasks", label: "Uppgifter", icon: CheckSquare },
     { path: "/jobs", label: "Jobb", icon: Briefcase },
     { path: "/shifts", label: "Skift", icon: Clock },
