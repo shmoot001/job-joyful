@@ -10,7 +10,7 @@ import { AddTaskDialog } from "@/components/tasks/AddTaskDialog";
 import { EditTaskDialog } from "@/components/tasks/EditTaskDialog";
 import { DeleteTaskDialog } from "@/components/tasks/DeleteTaskDialog";
 import { ManageCategoriesDialog } from "@/components/tasks/ManageCategoriesDialog";
-import Header from "@/components/Header";
+
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 
@@ -57,9 +57,7 @@ const Tasks = () => {
   const completedTasks = filteredTasks.filter(task => task.completed);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!selectedCategory ? (
           // Category Selection View
           <>
@@ -309,7 +307,6 @@ const Tasks = () => {
           onOpenChange={setManageCategoriesOpen}
         />
       </div>
-    </div>
   );
 };
 

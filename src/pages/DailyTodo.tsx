@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Plus, GripVertical, Bell, X } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
-import Header from "@/components/Header";
+
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 
@@ -54,9 +54,7 @@ const DailyTodo = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <Card className="bg-card shadow-lg">
           {/* Header */}
           <div className="border-b border-border px-6 py-4 flex items-center justify-between">
@@ -112,7 +110,6 @@ const DailyTodo = () => {
             </Button>
           </div>
         </Card>
-      </div>
     </div>
   );
 };

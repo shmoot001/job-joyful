@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart as BarChartIcon, TrendingUp, Calendar, Filter, DollarSign, Clock, Briefcase, Download, Percent, Trophy, Target, PieChart, CalendarDays, TrendingDown } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Area, PieChart as RePieChart, Pie, Cell } from "recharts";
-import Header from "@/components/Header";
+
 import { useShifts } from "@/hooks/useShifts";
 import { useJobs } from "@/hooks/useJobs";
 import { format, startOfWeek, getWeek, getMonth, getYear, isFuture, parseISO, startOfYear, endOfYear, isWithinInterval } from "date-fns";
@@ -346,9 +346,7 @@ const Statistics = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <Skeleton className="h-10 w-48 mb-2" />
             <Skeleton className="h-5 w-96" />
@@ -371,15 +369,11 @@ const Statistics = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-fade-in">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Statistik</h1>
@@ -1017,7 +1011,6 @@ const Statistics = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
   );
 };
 

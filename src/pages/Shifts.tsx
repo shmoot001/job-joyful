@@ -13,7 +13,7 @@ import { AddShiftDialog } from "@/components/shifts/AddShiftDialog";
 import { EditShiftDialog } from "@/components/shifts/EditShiftDialog";
 import { DeleteShiftDialog } from "@/components/shifts/DeleteShiftDialog";
 import { CopyShiftDialog } from "@/components/shifts/CopyShiftDialog";
-import Header from "@/components/Header";
+
 import { parseISO, format, isToday, isTomorrow, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { sv } from "date-fns/locale";
 
@@ -165,9 +165,7 @@ const Shifts = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <Skeleton className="h-10 w-48 mb-2" />
             <Skeleton className="h-5 w-64" />
@@ -190,14 +188,11 @@ const Shifts = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8 animate-fade-in">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Mina Skift</h1>
@@ -556,7 +551,6 @@ const Shifts = () => {
           shift={selectedShift}
         />
       </div>
-    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, startOfWeek, addDays, isToday } from "date-fns";
 import { sv } from "date-fns/locale";
-import Header from "@/components/Header";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -75,19 +75,14 @@ const Workouts = () => {
 
   if (isLoadingWeeks) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="flex items-center justify-center h-64">
-          <p>Laddar träningsprogram...</p>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <p>Laddar träningsprogram...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
@@ -274,7 +269,6 @@ const Workouts = () => {
           isUpdating={isUpdatingDay}
         />
       </div>
-    </div>
   );
 };
 

@@ -8,7 +8,7 @@ import { TrendingUp, TrendingDown, Edit, Trash2, ExternalLink } from 'lucide-rea
 import { useBusiness } from '@/hooks/useBusiness';
 import { AddTransactionDialog } from '@/components/business/AddTransactionDialog';
 import { format } from 'date-fns';
-import Header from '@/components/Header';
+
 
 export default function Business() {
   const { inTransactions, outTransactions, totalIn, totalOut, isLoading, deleteTransaction } = useBusiness();
@@ -116,21 +116,16 @@ export default function Business() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-lg">Loading transactions...</div>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading transactions...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Business Transactions</h1>
@@ -191,7 +186,6 @@ export default function Business() {
           <TransactionTable transactions={outTransactions} type="OUT" />
         </TabsContent>
       </Tabs>
-      </div>
     </div>
   );
 }

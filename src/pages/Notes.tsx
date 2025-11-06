@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Header from "@/components/Header";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Plus } from "lucide-react";
@@ -15,9 +15,7 @@ const Notes = () => {
   const { notes, isLoading } = useNotes();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Anteckningar</h1>
           <Button onClick={() => setAddDialogOpen(true)}>
@@ -68,7 +66,6 @@ const Notes = () => {
           onOpenChange={(open) => !open && setSelectedNote(null)}
         />
       </main>
-    </div>
   );
 };
 

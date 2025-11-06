@@ -9,7 +9,7 @@ import { useShifts } from "@/hooks/useShifts";
 import { AddJobDialog } from "@/components/jobs/AddJobDialog";
 import { EditJobDialog } from "@/components/jobs/EditJobDialog";
 import { DeleteJobDialog } from "@/components/jobs/DeleteJobDialog";
-import Header from "@/components/Header";
+
 import { parseISO, format } from "date-fns";
 import { sv } from "date-fns/locale";
 
@@ -87,9 +87,7 @@ const Jobs = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <Skeleton className="h-10 w-48 mb-2" />
             <Skeleton className="h-5 w-64" />
@@ -120,14 +118,11 @@ const Jobs = () => {
             ))}
           </div>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8 animate-fade-in">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Mina Jobb</h1>
@@ -321,7 +316,6 @@ const Jobs = () => {
           job={selectedJob}
         />
       </div>
-    </div>
   );
 };
 

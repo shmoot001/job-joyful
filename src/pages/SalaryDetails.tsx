@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Download, TrendingUp, DollarSign, Clock, Calendar } from "lucide-react";
 import { useShifts } from "@/hooks/useShifts";
 import { useJobs } from "@/hooks/useJobs";
-import Header from "@/components/Header";
+
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from "date-fns";
@@ -171,10 +171,7 @@ const SalaryDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Lönedetaljer</h1>
           <p className="text-muted-foreground">Detaljerad översikt över dina intäkter</p>
@@ -353,7 +350,6 @@ const SalaryDetails = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
   );
 };
 

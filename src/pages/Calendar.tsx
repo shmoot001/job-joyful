@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import Header from "@/components/Header";
+
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
 import SubscribeLinkDialog from "@/components/calendar/SubscribeLinkDialog";
@@ -246,18 +246,14 @@ const Calendar = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Laddar kalender...</div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Laddar kalender...</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       <div className="max-w-7xl mx-auto p-3 sm:p-6">
         <div className="flex flex-col space-y-3 sm:space-y-4 mb-4 sm:mb-6">
             <div className="flex items-center justify-between">

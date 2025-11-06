@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useTasks, Task } from "@/hooks/useTasks";
 import { useShifts, Shift } from "@/hooks/useShifts";
-import Header from "@/components/Header";
+
 import { format, addDays, subDays, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import AddScheduleItemDialog from "@/components/schedule/AddScheduleItemDialog";
@@ -82,18 +82,14 @@ const DaySchedule = () => {
 
   if (tasksLoading || shiftsLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">Laddar...</div>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">Laddar...</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
         {/* Date Navigation */}
         <Card className="mb-6 p-4">
