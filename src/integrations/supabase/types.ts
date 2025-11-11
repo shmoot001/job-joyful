@@ -56,6 +56,48 @@ export type Database = {
         }
         Relationships: []
       }
+      cars: {
+        Row: {
+          car_number: string
+          created_at: string
+          id: string
+          inspection_date: string | null
+          insurance_date: string | null
+          insurance_price: number | null
+          model: string
+          tax_month: string | null
+          tax_price: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          car_number: string
+          created_at?: string
+          id?: string
+          inspection_date?: string | null
+          insurance_date?: string | null
+          insurance_price?: number | null
+          model: string
+          tax_month?: string | null
+          tax_price?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          car_number?: string
+          created_at?: string
+          id?: string
+          inspection_date?: string | null
+          insurance_date?: string | null
+          insurance_price?: number | null
+          model?: string
+          tax_month?: string | null
+          tax_price?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           color: string | null
