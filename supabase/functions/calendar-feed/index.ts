@@ -12,19 +12,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const userId = url.searchParams.get('user_id');
-
-    if (!userId) {
-      return new Response('Missing user_id parameter', { 
-        status: 400,
+    // Get user ID from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response('Missing authorization header', { 
+        status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
       });
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: { Authorization: authHeader }
+      }
+    });
+
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return new Response('Unauthorized', { 
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+      });
+    }
+
+    const userId = user.id;
 
     // Fetch shifts for the user
     const { data: shifts, error: shiftsError } = await supabase
