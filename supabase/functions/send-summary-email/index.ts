@@ -22,6 +22,23 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const { type, date, only_user, to }: SummaryRequest = await req.json();
+    
+    // Security: Validate cron secret for bulk operations
+    if (!only_user) {
+      const cronSecret = Deno.env.get('EMAIL_CRON_SECRET');
+      const providedSecret = req.headers.get('x-cron-secret');
+      
+      if (!cronSecret || !providedSecret || cronSecret !== providedSecret) {
+        console.error('Unauthorized bulk email attempt - invalid or missing cron secret');
+        return new Response(JSON.stringify({ error: 'Unauthorized - Invalid credentials' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      console.log('Bulk email authorized via cron secret');
+    }
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
@@ -31,8 +48,6 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
     });
-    
-    const { type, date, only_user, to }: SummaryRequest = await req.json();
     
     let targets: Array<{ user_id: string; email: string | null }> = [];
 
