@@ -655,9 +655,10 @@ const Calendar = () => {
         selectedDate={selectedDate}
       />
       
-      <AddTaskDialog
-        open={addTaskDialogOpen}
+      <AddTaskDialog 
+        open={addTaskDialogOpen} 
         onOpenChange={setAddTaskDialogOpen}
+        selectedDate={selectedDate}
       />
     </div>
   );
