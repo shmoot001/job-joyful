@@ -14,11 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Daily Summary Emails
+        env:
+          EMAIL_CRON_SECRET: ${{ secrets.EMAIL_CRON_SECRET }}
         run: |
           curl -X POST \
             "https://sypmwbybrcuxmnouzjwu.supabase.co/functions/v1/send-summary-email" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5cG13YnlicmN1eG1ub3V6and1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MjA0MDksImV4cCI6MjA3MTI5NjQwOX0.vmnpkuQw7KwaTQELlxb8Di7YPj0ulSBYs5Rhy09VcX0" \
+            -H "x-cron-secret: $EMAIL_CRON_SECRET" \
             -d '{"type": "daily", "only_user": false}'
 
   send-weekly-emails:
@@ -26,9 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Weekly Summary Emails
+        env:
+          EMAIL_CRON_SECRET: ${{ secrets.EMAIL_CRON_SECRET }}
         run: |
           curl -X POST \
             "https://sypmwbybrcuxmnouzjwu.supabase.co/functions/v1/send-summary-email" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5cG13YnlicmN1eG1ub3V6and1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MjA0MDksImV4cCI6MjA3MTI5NjQwOX0.vmnpkuQw7KwaTQELlxb8Di7YPj0ulSBYs5Rhy09VcX0" \
+            -H "x-cron-secret: $EMAIL_CRON_SECRET" \
             -d '{"type": "weekly", "only_user": false}'
