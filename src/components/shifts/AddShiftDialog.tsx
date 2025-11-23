@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useShifts } from "@/hooks/useShifts";
 import { useJobs } from "@/hooks/useJobs";
+import { format } from "date-fns";
 
 interface AddShiftDialogProps {
   open: boolean;
@@ -53,7 +54,7 @@ export const AddShiftDialog = ({ open, onOpenChange, selectedDate }: AddShiftDia
   // Set date when selectedDate changes
   useEffect(() => {
     if (selectedDate && open) {
-      const dateString = selectedDate.toISOString().split('T')[0];
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
       setFormData(prev => ({ ...prev, date: dateString }));
     }
   }, [selectedDate, open]);

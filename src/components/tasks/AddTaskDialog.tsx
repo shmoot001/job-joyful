@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTasks } from "@/hooks/useTasks";
 import { useCategories } from "@/hooks/useCategories";
+import { format } from "date-fns";
 
 interface AddTaskDialogProps {
   open: boolean;
@@ -22,7 +23,7 @@ export const AddTaskDialog = ({ open, onOpenChange, defaultCategory, selectedDat
   
   const getDefaultDeadline = () => {
     if (selectedDate) {
-      return selectedDate.toISOString().split('T')[0];
+      return format(selectedDate, 'yyyy-MM-dd');
     }
     return "";
   };
@@ -36,7 +37,7 @@ export const AddTaskDialog = ({ open, onOpenChange, defaultCategory, selectedDat
 
   useEffect(() => {
     if (selectedDate && open) {
-      const dateString = selectedDate.toISOString().split('T')[0];
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
       setFormData(prev => ({ ...prev, deadline: dateString }));
     }
   }, [selectedDate, open]);
