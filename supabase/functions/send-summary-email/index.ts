@@ -24,19 +24,27 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { type, date, only_user, to }: SummaryRequest = await req.json();
     
-    // Security: Validate cron secret for bulk operations
+    // Security: Validate service role key for bulk operations (more secure than custom secrets)
     if (!only_user) {
-      const cronSecret = Deno.env.get('EMAIL_CRON_SECRET');
-      const providedSecret = req.headers.get('x-cron-secret');
+      const authHeader = req.headers.get('Authorization');
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
       
-      if (!cronSecret || !providedSecret || cronSecret !== providedSecret) {
-        console.error('Unauthorized bulk email attempt - invalid or missing cron secret');
+      // Check both service role key in Authorization header and x-cron-secret for backwards compatibility
+      const providedToken = authHeader?.replace('Bearer ', '');
+      const cronSecret = Deno.env.get('EMAIL_CRON_SECRET');
+      const providedCronSecret = req.headers.get('x-cron-secret');
+      
+      const isServiceRoleAuth = providedToken && serviceRoleKey && providedToken === serviceRoleKey;
+      const isCronSecretAuth = providedCronSecret && cronSecret && providedCronSecret === cronSecret;
+      
+      if (!isServiceRoleAuth && !isCronSecretAuth) {
+        console.error('Unauthorized bulk email attempt - invalid credentials');
         return new Response(JSON.stringify({ error: 'Unauthorized - Invalid credentials' }), {
           status: 401,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }
-      console.log('Bulk email authorized via cron secret');
+      console.log('Bulk email authorized via', isServiceRoleAuth ? 'service role key' : 'cron secret');
     }
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
