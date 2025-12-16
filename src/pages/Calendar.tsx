@@ -68,6 +68,18 @@ const Calendar = () => {
 
   const handleCalendarSubscription = async (url: string, name: string) => {
     try {
+      // Security: Validate URL before fetching
+      const { validateCalendarUrl } = await import('@/utils/icalParser');
+      const validation = validateCalendarUrl(url);
+      if (!validation.valid) {
+        toast({
+          title: "Ogiltig URL",
+          description: validation.error || "Kontrollera URL:en och försök igen.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Fetch the iCal data
       const response = await fetch(url);
       if (!response.ok) {
