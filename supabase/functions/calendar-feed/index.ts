@@ -12,34 +12,35 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get user ID from JWT token
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response('Missing authorization header', { 
-        status: 401,
+    // Get user_id from URL parameter (required for external calendar apps)
+    const url = new URL(req.url);
+    const userId = url.searchParams.get('user_id');
+
+    if (!userId) {
+      console.error('Missing user_id parameter');
+      return new Response('Missing user_id parameter', { 
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
       });
     }
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      console.error('Invalid user_id format');
+      return new Response('Invalid user_id format', { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+      });
+    }
+
+    console.log(`Generating calendar feed for user: ${userId}`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: {
-        headers: { Authorization: authHeader }
-      }
-    });
-
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    if (authError || !user) {
-      return new Response('Unauthorized', { 
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
-      });
-    }
-
-    const userId = user.id;
+    // Use service role to bypass RLS since external calendar apps can't authenticate
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch shifts for the user
     const { data: shifts, error: shiftsError } = await supabase
@@ -70,14 +71,16 @@ Deno.serve(async (req) => {
       console.error('Error fetching tasks:', tasksError);
     }
 
+    console.log(`Found ${shifts?.length || 0} shifts and ${tasks?.length || 0} tasks`);
+
     // Generate iCal format
     let icalContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Lovable Calendar//EN',
+      'PRODID:-//LifeHub Calendar//EN',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
-      'X-WR-CALNAME:Min Kalender',
+      'X-WR-CALNAME:LifeHub Kalender',
       'X-WR-TIMEZONE:Europe/Stockholm',
     ];
 
@@ -90,12 +93,12 @@ Deno.serve(async (req) => {
       
       icalContent.push(
         'BEGIN:VEVENT',
-        `UID:shift-${shift.id}@lovable-calendar`,
+        `UID:shift-${shift.id}@lifehub`,
         `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
         `DTSTART:${startDateTime}`,
         `DTEND:${endDateTime}`,
-        `SUMMARY:${jobName}`,
-        notes ? `DESCRIPTION:${notes}` : '',
+        `SUMMARY:${escapeICalText(jobName)}`,
+        notes ? `DESCRIPTION:${escapeICalText(notes)}` : '',
         'STATUS:CONFIRMED',
         'END:VEVENT'
       );
@@ -108,12 +111,12 @@ Deno.serve(async (req) => {
       
       icalContent.push(
         'BEGIN:VEVENT',
-        `UID:task-${task.id}@lovable-calendar`,
+        `UID:task-${task.id}@lifehub`,
         `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
         `DTSTART;VALUE=DATE:${date}`,
-        `SUMMARY:${task.title}${completed}`,
-        task.description ? `DESCRIPTION:${task.description}` : '',
-        task.category ? `CATEGORIES:${task.category}` : '',
+        `SUMMARY:📋 ${escapeICalText(task.title)}${completed}`,
+        task.description ? `DESCRIPTION:${escapeICalText(task.description)}` : '',
+        task.category ? `CATEGORIES:${escapeICalText(task.category)}` : '',
         'STATUS:CONFIRMED',
         'END:VEVENT'
       );
@@ -125,7 +128,7 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/calendar; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="calendar.ics"',
+        'Content-Disposition': 'attachment; filename="lifehub-calendar.ics"',
       },
     });
   } catch (error) {
@@ -136,3 +139,11 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+function escapeICalText(text: string): string {
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n');
+}
