@@ -21,6 +21,7 @@ import Statistics from "./pages/Statistics";
 import TestEmails from "./pages/TestEmails";
 import Notes from "./pages/Notes";
 import Cars from "./pages/Cars";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -144,6 +145,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Cars />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               } 
             />
