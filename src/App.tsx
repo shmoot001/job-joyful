@@ -22,6 +22,7 @@ import TestEmails from "./pages/TestEmails";
 import Notes from "./pages/Notes";
 import Cars from "./pages/Cars";
 import Settings from "./pages/Settings";
+import Projects from "./pages/Projects";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -153,6 +154,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/projects" 
+              element={
+                <ProtectedRoute>
+                  <Projects />
                 </ProtectedRoute>
               } 
             />
