@@ -139,6 +139,14 @@ export function ProjectKanban({ projectId }: ProjectKanbanProps) {
                             {task.description}
                           </p>
                         )}
+                        {task.due_date && (
+                          <div className="flex items-center gap-1.5 mt-2 px-2 py-1 bg-primary/10 rounded-md w-fit">
+                            <CalendarDays className="h-3.5 w-3.5 text-primary" />
+                            <span className="text-xs font-medium text-primary">
+                              {format(new Date(task.due_date), "d MMMM yyyy", { locale: sv })}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 mt-2 flex-wrap">
                           <Badge
                             variant="outline"
@@ -146,12 +154,6 @@ export function ProjectKanban({ projectId }: ProjectKanbanProps) {
                           >
                             {PRIORITIES[task.priority as keyof typeof PRIORITIES]?.label || task.priority}
                           </Badge>
-                          {task.due_date && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <CalendarDays className="h-3 w-3" />
-                              {format(new Date(task.due_date), "d MMM", { locale: sv })}
-                            </span>
-                          )}
                         </div>
                       </div>
                       <Button

@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { sv } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, CheckCircle2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 import SubscribeCalendarDialog from "@/components/calendar/SubscribeCalendarDialog";
 import ManageSubscriptionsDialog from "@/components/calendar/ManageSubscriptionsDialog";
@@ -23,9 +24,12 @@ import { useCategories } from "@/hooks/useCategories";
 import { useToast } from "@/hooks/use-toast";
 import { parseICalData, ICalEvent } from "@/utils/icalParser";
 
+type FilterType = "all" | "shifts" | "tasks";
+
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+  const [filterType, setFilterType] = useState<FilterType>("all");
   const [externalEvents, setExternalEvents] = useState<ICalEvent[]>([]);
   const [selectedShift, setSelectedShift] = useState<any>(null);
   const [selectedTask, setSelectedTask] = useState<any>(null);
@@ -206,12 +210,12 @@ const Calendar = () => {
   const displayDays = viewMode === 'month' ? monthDays : weekDays;
 
   const getShiftsForDate = (date: Date) => {
-    if (!shifts) return [];
+    if (!shifts || filterType === "tasks") return [];
     return shifts.filter(shift => isSameDay(parseISO(shift.date), date));
   };
 
   const getTasksForDate = (date: Date) => {
-    if (!tasks) return [];
+    if (!tasks || filterType === "shifts") return [];
     return tasks.filter(task => task.deadline && isSameDay(parseISO(task.deadline), date));
   };
 
@@ -338,6 +342,29 @@ const Calendar = () => {
                 Vecka
               </Button>
             </div>
+          </div>
+
+          {/* Filter toggle */}
+          <div className="flex items-center justify-center sm:justify-start gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <ToggleGroup 
+              type="single" 
+              value={filterType} 
+              onValueChange={(value) => value && setFilterType(value as FilterType)}
+              className="border rounded-md"
+            >
+              <ToggleGroupItem value="all" size="sm" className="text-xs px-3">
+                Alla
+              </ToggleGroupItem>
+              <ToggleGroupItem value="shifts" size="sm" className="text-xs px-3">
+                <Clock className="h-3 w-3 mr-1" />
+                Skift
+              </ToggleGroupItem>
+              <ToggleGroupItem value="tasks" size="sm" className="text-xs px-3">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                Uppgifter
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
         </div>
 
