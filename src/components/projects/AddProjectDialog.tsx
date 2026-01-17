@@ -16,7 +16,7 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
   const { createProject, projectCategories, isCreating } = useProjects();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("");
+  const [categoryId, setCategoryId] = useState<string>("none");
   const [priority, setPriority] = useState("medium");
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -28,7 +28,7 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
     createProject({
       name: name.trim(),
       description: description.trim() || undefined,
-      category_id: categoryId || undefined,
+      category_id: categoryId === "none" ? undefined : categoryId,
       status: "planning",
       priority,
       start_date: startDate || undefined,
@@ -42,7 +42,7 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
   const resetForm = () => {
     setName("");
     setDescription("");
-    setCategoryId("");
+    setCategoryId("none");
     setPriority("medium");
     setStartDate("");
     setDueDate("");
@@ -85,7 +85,7 @@ export function AddProjectDialog({ open, onOpenChange }: AddProjectDialogProps) 
                   <SelectValue placeholder="Välj kategori" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Ingen kategori</SelectItem>
+                  <SelectItem value="none">Ingen kategori</SelectItem>
                   {projectCategories?.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <div className="flex items-center gap-2">
