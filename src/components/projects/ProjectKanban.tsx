@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, GripVertical } from "lucide-react";
+import { Plus, Trash2, GripVertical, Paperclip, CalendarDays } from "lucide-react";
 import { useProjectDetails, ProjectTask } from "@/hooks/useProjects";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { TaskDetailsDialog } from "./TaskDetailsDialog";
 
 interface ProjectKanbanProps {
   projectId: string;
@@ -29,6 +30,8 @@ export function ProjectKanban({ projectId }: ProjectKanbanProps) {
   const { tasks, createTask, updateTask, deleteTask } = useProjectDetails(projectId);
   const [newTaskTitle, setNewTaskTitle] = useState<Record<string, string>>({});
   const [draggedTask, setDraggedTask] = useState<ProjectTask | null>(null);
+  const [selectedTask, setSelectedTask] = useState<ProjectTask | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const getTasksByStatus = (status: string) => {
     return tasks?.filter((task) => task.status === status) || [];
@@ -69,95 +72,115 @@ export function ProjectKanban({ projectId }: ProjectKanbanProps) {
     setDraggedTask(null);
   };
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {COLUMNS.map((column) => (
-        <Card
-          key={column.id}
-          className="min-h-[400px]"
-          onDragOver={handleDragOver}
-          onDrop={() => handleDrop(column.id)}
-        >
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <div className={`w-3 h-3 rounded-full ${column.color}`} />
-              {column.label}
-              <Badge variant="secondary" className="ml-auto">
-                {getTasksByStatus(column.id).length}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Add new task input */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ny uppgift..."
-                value={newTaskTitle[column.id] || ""}
-                onChange={(e) =>
-                  setNewTaskTitle((prev) => ({ ...prev, [column.id]: e.target.value }))
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddTask(column.id);
-                }}
-                className="text-sm"
-              />
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => handleAddTask(column.id)}
-                disabled={!newTaskTitle[column.id]?.trim()}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
+  const handleTaskClick = (task: ProjectTask) => {
+    setSelectedTask(task);
+    setDetailsOpen(true);
+  };
 
-            {/* Task cards */}
-            <div className="space-y-2">
-              {getTasksByStatus(column.id).map((task) => (
-                <div
-                  key={task.id}
-                  draggable
-                  onDragStart={() => handleDragStart(task)}
-                  className="group p-3 bg-muted/50 rounded-lg border cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors"
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {COLUMNS.map((column) => (
+          <Card
+            key={column.id}
+            className="min-h-[400px]"
+            onDragOver={handleDragOver}
+            onDrop={() => handleDrop(column.id)}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <div className={`w-3 h-3 rounded-full ${column.color}`} />
+                {column.label}
+                <Badge variant="secondary" className="ml-auto">
+                  {getTasksByStatus(column.id).length}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Add new task input */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ny uppgift..."
+                  value={newTaskTitle[column.id] || ""}
+                  onChange={(e) =>
+                    setNewTaskTitle((prev) => ({ ...prev, [column.id]: e.target.value }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddTask(column.id);
+                  }}
+                  className="text-sm"
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleAddTask(column.id)}
+                  disabled={!newTaskTitle[column.id]?.trim()}
                 >
-                  <div className="flex items-start gap-2">
-                    <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{task.title}</p>
-                      {task.description && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {task.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${PRIORITIES[task.priority as keyof typeof PRIORITIES]?.color || ""}`}
-                        >
-                          {PRIORITIES[task.priority as keyof typeof PRIORITIES]?.label || task.priority}
-                        </Badge>
-                        {task.due_date && (
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(task.due_date), "d MMM", { locale: sv })}
-                          </span>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Task cards */}
+              <div className="space-y-2">
+                {getTasksByStatus(column.id).map((task) => (
+                  <div
+                    key={task.id}
+                    draggable
+                    onDragStart={() => handleDragStart(task)}
+                    onClick={() => handleTaskClick(task)}
+                    className="group p-3 bg-muted/50 rounded-lg border cursor-pointer active:cursor-grabbing hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex items-start gap-2">
+                      <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 cursor-grab" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{task.title}</p>
+                        {task.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {task.description}
+                          </p>
                         )}
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${PRIORITIES[task.priority as keyof typeof PRIORITIES]?.color || ""}`}
+                          >
+                            {PRIORITIES[task.priority as keyof typeof PRIORITIES]?.label || task.priority}
+                          </Badge>
+                          {task.due_date && (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <CalendarDays className="h-3 w-3" />
+                              {format(new Date(task.due_date), "d MMM", { locale: sv })}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTask(task.id);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
                     </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => deleteTask(task.id)}
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <TaskDetailsDialog
+        task={selectedTask}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        onUpdate={updateTask}
+        onDelete={deleteTask}
+      />
+    </>
   );
 }
