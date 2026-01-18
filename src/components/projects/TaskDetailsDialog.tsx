@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Paperclip, Trash2, Download, Upload } from "lucide-react";
+import { CalendarIcon, Paperclip, Trash2, Download, Upload, Layers, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { ProjectTask } from "@/hooks/useProjects";
+import { useProjectExtras } from "@/hooks/useProjectExtras";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -35,6 +36,7 @@ interface TaskDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   onUpdate: (updates: Partial<ProjectTask> & { id: string }) => void;
   onDelete: (id: string) => void;
+  projectId: string;
 }
 
 const PRIORITIES = [
@@ -50,16 +52,19 @@ const STATUSES = [
   { value: "done", label: "Klart" },
 ];
 
-export function TaskDetailsDialog({ task, open, onOpenChange, onUpdate, onDelete }: TaskDetailsDialogProps) {
+export function TaskDetailsDialog({ task, open, onOpenChange, onUpdate, onDelete, projectId }: TaskDetailsDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { epics, sprints } = useProjectExtras(projectId);
   
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("medium");
   const [status, setStatus] = useState("todo");
   const [dueDate, setDueDate] = useState<Date | undefined>();
+  const [epicId, setEpicId] = useState<string | undefined>();
+  const [sprintId, setSprintId] = useState<string | undefined>();
 
   useEffect(() => {
     if (task) {
@@ -68,6 +73,8 @@ export function TaskDetailsDialog({ task, open, onOpenChange, onUpdate, onDelete
       setPriority(task.priority || "medium");
       setStatus(task.status);
       setDueDate(task.due_date ? new Date(task.due_date) : undefined);
+      setEpicId(task.epic_id || undefined);
+      setSprintId(task.sprint_id || undefined);
     }
   }, [task]);
 
@@ -174,6 +181,8 @@ export function TaskDetailsDialog({ task, open, onOpenChange, onUpdate, onDelete
       priority,
       status,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
+      epic_id: epicId || null,
+      sprint_id: sprintId || null,
     });
     onOpenChange(false);
   };
@@ -293,6 +302,55 @@ export function TaskDetailsDialog({ task, open, onOpenChange, onUpdate, onDelete
                 Rensa datum
               </Button>
             )}
+          </div>
+
+          {/* Epic and Sprint selection */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <Layers className="h-3.5 w-3.5" />
+                Epic
+              </Label>
+              <Select value={epicId || "none"} onValueChange={(v) => setEpicId(v === "none" ? undefined : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Ingen epic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ingen epic</SelectItem>
+                  {epics?.map((epic) => (
+                    <SelectItem key={epic.id} value={epic.id}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: epic.color }}
+                        />
+                        {epic.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5" />
+                Sprint
+              </Label>
+              <Select value={sprintId || "none"} onValueChange={(v) => setSprintId(v === "none" ? undefined : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Ingen sprint" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ingen sprint</SelectItem>
+                  {sprints?.map((sprint) => (
+                    <SelectItem key={sprint.id} value={sprint.id}>
+                      {sprint.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Attachments section */}
