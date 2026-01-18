@@ -292,6 +292,103 @@ export type Database = {
         }
         Relationships: []
       }
+      project_epics: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          project_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          project_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_epics_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_meetings: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_time: string | null
+          id: string
+          location: string | null
+          meeting_date: string
+          meeting_link: string | null
+          project_id: string
+          start_time: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          location?: string | null
+          meeting_date: string
+          meeting_link?: string | null
+          project_id: string
+          start_time: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          location?: string | null
+          meeting_date?: string
+          meeting_link?: string | null
+          project_id?: string
+          start_time?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_meetings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_notes: {
         Row: {
           content: string
@@ -323,6 +420,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "project_notes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_sprints: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          goal: string | null
+          id: string
+          name: string
+          project_id: string
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          goal?: string | null
+          id?: string
+          name: string
+          project_id: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          goal?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_sprints_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -376,10 +520,12 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string | null
+          epic_id: string | null
           id: string
           position: number
           priority: string | null
           project_id: string
+          sprint_id: string | null
           status: string
           title: string
           updated_at: string
@@ -389,10 +535,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          epic_id?: string | null
           id?: string
           position?: number
           priority?: string | null
           project_id: string
+          sprint_id?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -402,10 +550,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          epic_id?: string | null
           id?: string
           position?: number
           priority?: string | null
           project_id?: string
+          sprint_id?: string | null
           status?: string
           title?: string
           updated_at?: string
@@ -413,10 +563,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "project_tasks_epic_id_fkey"
+            columns: ["epic_id"]
+            isOneToOne: false
+            referencedRelation: "project_epics"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "project_tasks_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_tasks_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "project_sprints"
             referencedColumns: ["id"]
           },
         ]

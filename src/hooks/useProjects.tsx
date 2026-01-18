@@ -36,6 +36,8 @@ export interface ProjectTask {
   priority: string;
   position: number;
   due_date?: string;
+  epic_id?: string;
+  sprint_id?: string;
   created_at: string;
   updated_at: string;
 }

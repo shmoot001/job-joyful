@@ -12,6 +12,9 @@ import { ProjectKanban } from "@/components/projects/ProjectKanban";
 import { ProjectNotes } from "@/components/projects/ProjectNotes";
 import { ProjectAttachments } from "@/components/projects/ProjectAttachments";
 import { ProjectProgress } from "@/components/projects/ProjectProgress";
+import { ProjectMeetings } from "@/components/projects/ProjectMeetings";
+import { ProjectEpics } from "@/components/projects/ProjectEpics";
+import { ProjectSprints } from "@/components/projects/ProjectSprints";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -125,16 +128,31 @@ export default function Projects() {
           </CardContent>
         </Card>
 
-        {/* Tabs for Kanban, Notes, Attachments */}
+        {/* Tabs for Kanban, Epics, Sprints, Meetings, Notes, Attachments */}
         <Tabs defaultValue="kanban" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="kanban">Uppgifter</TabsTrigger>
-            <TabsTrigger value="notes">Plan & Anteckningar</TabsTrigger>
+            <TabsTrigger value="epics">Epics</TabsTrigger>
+            <TabsTrigger value="sprints">Sprints</TabsTrigger>
+            <TabsTrigger value="meetings">Möten</TabsTrigger>
+            <TabsTrigger value="notes">Anteckningar</TabsTrigger>
             <TabsTrigger value="attachments">Bilagor</TabsTrigger>
           </TabsList>
 
           <TabsContent value="kanban">
             <ProjectKanban projectId={selectedProject.id} />
+          </TabsContent>
+
+          <TabsContent value="epics">
+            <ProjectEpics projectId={selectedProject.id} />
+          </TabsContent>
+
+          <TabsContent value="sprints">
+            <ProjectSprints projectId={selectedProject.id} />
+          </TabsContent>
+
+          <TabsContent value="meetings">
+            <ProjectMeetings projectId={selectedProject.id} />
           </TabsContent>
 
           <TabsContent value="notes">
