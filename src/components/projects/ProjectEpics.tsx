@@ -23,6 +23,7 @@ import {
 import { Plus, Layers, Trash2, Edit } from "lucide-react";
 import { useProjectExtras, ProjectEpic } from "@/hooks/useProjectExtras";
 import { useProjectDetails } from "@/hooks/useProjects";
+import { EpicTasksDialog } from "./EpicTasksDialog";
 
 interface ProjectEpicsProps {
   projectId: string;
@@ -52,6 +53,7 @@ export function ProjectEpics({ projectId }: ProjectEpicsProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEpic, setEditingEpic] = useState<ProjectEpic | null>(null);
   const [epicToDelete, setEpicToDelete] = useState<ProjectEpic | null>(null);
+  const [selectedEpic, setSelectedEpic] = useState<ProjectEpic | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -143,7 +145,11 @@ export function ProjectEpics({ projectId }: ProjectEpicsProps) {
             const statusInfo = EPIC_STATUSES.find((s) => s.value === epic.status);
 
             return (
-              <Card key={epic.id} className="overflow-hidden">
+              <Card 
+                key={epic.id} 
+                className="overflow-hidden cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => setSelectedEpic(epic)}
+              >
                 <div
                   className="h-1"
                   style={{ backgroundColor: epic.color }}
@@ -188,7 +194,10 @@ export function ProjectEpics({ projectId }: ProjectEpicsProps) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => handleOpenEditDialog(epic)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEditDialog(epic);
+                        }}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -196,7 +205,10 @@ export function ProjectEpics({ projectId }: ProjectEpicsProps) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => setEpicToDelete(epic)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEpicToDelete(epic);
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -334,6 +346,14 @@ export function ProjectEpics({ projectId }: ProjectEpicsProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Epic tasks dialog */}
+      <EpicTasksDialog
+        epic={selectedEpic}
+        projectId={projectId}
+        open={!!selectedEpic}
+        onOpenChange={(open) => !open && setSelectedEpic(null)}
+      />
     </div>
   );
 }

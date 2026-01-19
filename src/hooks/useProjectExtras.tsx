@@ -39,6 +39,7 @@ export interface ProjectMeeting {
   end_time?: string;
   location?: string;
   meeting_link?: string;
+  is_done?: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -10,7 +10,7 @@ import { DeleteProjectDialog } from "@/components/projects/DeleteProjectDialog";
 import { ManageProjectCategoriesDialog } from "@/components/projects/ManageProjectCategoriesDialog";
 import { ProjectKanban } from "@/components/projects/ProjectKanban";
 import { ProjectNotes } from "@/components/projects/ProjectNotes";
-import { ProjectAttachments } from "@/components/projects/ProjectAttachments";
+import { AttachmentFolders } from "@/components/projects/AttachmentFolders";
 import { ProjectProgress } from "@/components/projects/ProjectProgress";
 import { ProjectMeetings } from "@/components/projects/ProjectMeetings";
 import { ProjectEpics } from "@/components/projects/ProjectEpics";
@@ -160,7 +160,7 @@ export default function Projects() {
           </TabsContent>
 
           <TabsContent value="attachments">
-            <ProjectAttachments projectId={selectedProject.id} />
+            <AttachmentFolders projectId={selectedProject.id} />
           </TabsContent>
         </Tabs>
 

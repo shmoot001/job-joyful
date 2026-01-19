@@ -231,6 +231,7 @@ export type Database = {
           file_path: string
           file_size: number
           file_type: string | null
+          folder: string | null
           id: string
           project_id: string
           user_id: string
@@ -241,6 +242,7 @@ export type Database = {
           file_path: string
           file_size?: number
           file_type?: string | null
+          folder?: string | null
           id?: string
           project_id: string
           user_id: string
@@ -251,6 +253,7 @@ export type Database = {
           file_path?: string
           file_size?: number
           file_type?: string | null
+          folder?: string | null
           id?: string
           project_id?: string
           user_id?: string
@@ -342,6 +345,7 @@ export type Database = {
           description: string | null
           end_time: string | null
           id: string
+          is_done: boolean
           location: string | null
           meeting_date: string
           meeting_link: string | null
@@ -356,6 +360,7 @@ export type Database = {
           description?: string | null
           end_time?: string | null
           id?: string
+          is_done?: boolean
           location?: string | null
           meeting_date: string
           meeting_link?: string | null
@@ -370,6 +375,7 @@ export type Database = {
           description?: string | null
           end_time?: string | null
           id?: string
+          is_done?: boolean
           location?: string | null
           meeting_date?: string
           meeting_link?: string | null

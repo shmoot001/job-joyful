@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +15,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, CalendarDays, Clock, MapPin, Link as LinkIcon, Trash2, Edit } from "lucide-react";
+import { Plus, CalendarDays, Clock, MapPin, Link as LinkIcon, Trash2, Edit, List, CalendarRange } from "lucide-react";
 import { useProjectExtras, ProjectMeeting } from "@/hooks/useProjectExtras";
 import { format, parseISO, isPast, isToday } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { MeetingsCalendarView } from "./MeetingsCalendarView";
 
 interface ProjectMeetingsProps {
   projectId: string;
@@ -30,6 +32,7 @@ export function ProjectMeetings({ projectId }: ProjectMeetingsProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<ProjectMeeting | null>(null);
   const [meetingToDelete, setMeetingToDelete] = useState<ProjectMeeting | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar");
 
   // Form state
   const [title, setTitle] = useState("");
@@ -118,11 +121,35 @@ export function ProjectMeetings({ projectId }: ProjectMeetingsProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Möten</h3>
-        <Button onClick={handleOpenAddDialog} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Nytt möte
-        </Button>
+        <div className="flex items-center gap-2">
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "calendar")}>
+            <TabsList className="h-8">
+              <TabsTrigger value="calendar" className="text-xs px-2">
+                <CalendarRange className="h-3.5 w-3.5 mr-1" />
+                Kalender
+              </TabsTrigger>
+              <TabsTrigger value="list" className="text-xs px-2">
+                <List className="h-3.5 w-3.5 mr-1" />
+                Lista
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button onClick={handleOpenAddDialog} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Nytt möte
+          </Button>
+        </div>
       </div>
+
+      {viewMode === "calendar" ? (
+        <MeetingsCalendarView
+          projectId={projectId}
+          meetings={meetings || []}
+          onEdit={handleOpenEditDialog}
+          onDelete={setMeetingToDelete}
+        />
+      ) : (
+        <>
 
       {/* Upcoming meetings */}
       {upcomingMeetings && upcomingMeetings.length > 0 && (
@@ -170,6 +197,8 @@ export function ProjectMeetings({ projectId }: ProjectMeetingsProps) {
             </Button>
           </CardContent>
         </Card>
+      )}
+        </>
       )}
 
       {/* Add/Edit Dialog */}
