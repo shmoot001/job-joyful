@@ -60,6 +60,7 @@ export interface ProjectAttachment {
   file_path: string;
   file_size: number;
   file_type?: string;
+  folder?: string;
   created_at: string;
 }
 
@@ -372,7 +373,7 @@ export const useProjectDetails = (projectId: string | undefined) => {
 
   // Upload attachment
   const uploadAttachmentMutation = useMutation({
-    mutationFn: async ({ file, project_id }: { file: File; project_id: string }) => {
+    mutationFn: async ({ file, project_id, folder }: { file: File; project_id: string; folder?: string }) => {
       if (!user?.id) throw new Error("User not authenticated");
       
       const filePath = `${user.id}/${project_id}/${Date.now()}_${file.name}`;
@@ -392,6 +393,7 @@ export const useProjectDetails = (projectId: string | undefined) => {
           file_path: filePath,
           file_size: file.size,
           file_type: file.type,
+          folder: folder || null,
         }])
         .select()
         .single();
@@ -405,6 +407,26 @@ export const useProjectDetails = (projectId: string | undefined) => {
     },
     onError: (error) => {
       toast({ title: "Fel vid uppladdning", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Update attachment
+  const updateAttachmentMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<ProjectAttachment> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("project_attachments")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project_attachments", projectId] });
+    },
+    onError: (error) => {
+      toast({ title: "Fel", description: error.message, variant: "destructive" });
     },
   });
 
@@ -451,6 +473,7 @@ export const useProjectDetails = (projectId: string | undefined) => {
     updateNote: updateNoteMutation.mutate,
     deleteNote: deleteNoteMutation.mutate,
     uploadAttachment: uploadAttachmentMutation.mutate,
+    updateAttachment: updateAttachmentMutation.mutate,
     deleteAttachment: deleteAttachmentMutation.mutate,
     getAttachmentUrl,
     isUploadingAttachment: uploadAttachmentMutation.isPending,

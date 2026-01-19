@@ -28,6 +28,7 @@ import { useProjectDetails } from "@/hooks/useProjects";
 import { format, parseISO, differenceInDays, isAfter, isBefore } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { SprintTasksDialog } from "./SprintTasksDialog";
 
 interface ProjectSprintsProps {
   projectId: string;
@@ -46,6 +47,7 @@ export function ProjectSprints({ projectId }: ProjectSprintsProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingSprint, setEditingSprint] = useState<ProjectSprint | null>(null);
   const [sprintToDelete, setSprintToDelete] = useState<ProjectSprint | null>(null);
+  const [selectedSprint, setSelectedSprint] = useState<ProjectSprint | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -156,7 +158,11 @@ export function ProjectSprints({ projectId }: ProjectSprintsProps) {
             const timeProgress = getSprintProgress(sprint);
 
             return (
-              <Card key={sprint.id}>
+              <Card 
+                key={sprint.id}
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => setSelectedSprint(sprint)}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -233,7 +239,10 @@ export function ProjectSprints({ projectId }: ProjectSprintsProps) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => handleOpenEditDialog(sprint)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEditDialog(sprint);
+                        }}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -241,7 +250,10 @@ export function ProjectSprints({ projectId }: ProjectSprintsProps) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => setSprintToDelete(sprint)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSprintToDelete(sprint);
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -404,6 +416,14 @@ export function ProjectSprints({ projectId }: ProjectSprintsProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Sprint tasks dialog */}
+      <SprintTasksDialog
+        sprint={selectedSprint}
+        projectId={projectId}
+        open={!!selectedSprint}
+        onOpenChange={(open) => !open && setSelectedSprint(null)}
+      />
     </div>
   );
 }
