@@ -86,12 +86,14 @@ export const useShifts = () => {
 
   const updateShiftMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Shift> & { id: string }) => {
+      const { jobs: _jobs, ...rest } = updates as any;
       const { data, error } = await supabase
         .from("shifts")
-        .update(updates)
+        .update(rest)
         .eq("id", id)
         .select()
         .single();
+
 
       if (error) throw error;
       return data;
