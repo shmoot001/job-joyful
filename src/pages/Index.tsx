@@ -60,6 +60,34 @@ const Index = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Navigation - Mobile-friendly shortcuts */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/calendar")}
+            className="h-auto py-3 flex flex-col items-center gap-1"
+          >
+            <Calendar className="h-5 w-5" />
+            <span className="text-xs sm:text-sm">Kalender</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/tasks")}
+            className="h-auto py-3 flex flex-col items-center gap-1"
+          >
+            <CheckSquare className="h-5 w-5" />
+            <span className="text-xs sm:text-sm">Uppgifter</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/projects")}
+            className="h-auto py-3 flex flex-col items-center gap-1"
+          >
+            <Target className="h-5 w-5" />
+            <span className="text-xs sm:text-sm">Projekt</span>
+          </Button>
+        </div>
+
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
