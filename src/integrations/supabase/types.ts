@@ -688,6 +688,244 @@ export type Database = {
           },
         ]
       }
+      stock_notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          note_date: string
+          ticker: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          note_date?: string
+          ticker: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          note_date?: string
+          ticker?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stock_sales: {
+        Row: {
+          created_at: string
+          fees: number
+          id: string
+          sell_date: string
+          sell_fx_rate: number
+          sell_price: number
+          shares: number
+          trade_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fees?: number
+          id?: string
+          sell_date: string
+          sell_fx_rate?: number
+          sell_price: number
+          shares: number
+          trade_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fees?: number
+          id?: string
+          sell_date?: string
+          sell_fx_rate?: number
+          sell_price?: number
+          shares?: number
+          trade_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_sales_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "stock_trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stock_trade_tags: {
+        Row: {
+          id: string
+          tag_id: string
+          trade_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          tag_id: string
+          trade_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          tag_id?: string
+          trade_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_trade_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "stock_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_trade_tags_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "stock_trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_trades: {
+        Row: {
+          buy_date: string
+          buy_fx_rate: number
+          buy_price: number
+          created_at: string
+          currency: string
+          fees: number
+          id: string
+          name: string | null
+          shares: number
+          ticker: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buy_date: string
+          buy_fx_rate?: number
+          buy_price: number
+          created_at?: string
+          currency?: string
+          fees?: number
+          id?: string
+          name?: string | null
+          shares: number
+          ticker: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buy_date?: string
+          buy_fx_rate?: number
+          buy_price?: number
+          created_at?: string
+          currency?: string
+          fees?: number
+          id?: string
+          name?: string | null
+          shares?: number
+          ticker?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stock_watchlist_items: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          ticker: string
+          user_id: string
+          watchlist_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          ticker: string
+          user_id: string
+          watchlist_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          ticker?: string
+          user_id?: string
+          watchlist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_watchlist_items_watchlist_id_fkey"
+            columns: ["watchlist_id"]
+            isOneToOne: false
+            referencedRelation: "stock_watchlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_watchlists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           category: string | null

@@ -1,0 +1,17 @@
+CREATE TABLE public.stock_trades (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, ticker text NOT NULL, name text, buy_date date NOT NULL, shares numeric NOT NULL, buy_price numeric NOT NULL, currency text NOT NULL DEFAULT 'SEK', buy_fx_rate numeric NOT NULL DEFAULT 1, fees numeric NOT NULL DEFAULT 0, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.stock_sales (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, trade_id uuid NOT NULL REFERENCES public.stock_trades(id) ON DELETE CASCADE, sell_date date NOT NULL, shares numeric NOT NULL, sell_price numeric NOT NULL, sell_fx_rate numeric NOT NULL DEFAULT 1, fees numeric NOT NULL DEFAULT 0, created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.stock_tags (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, name text NOT NULL, color text DEFAULT '#3B82F6', created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(user_id, name));
+CREATE TABLE public.stock_trade_tags (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, trade_id uuid NOT NULL REFERENCES public.stock_trades(id) ON DELETE CASCADE, tag_id uuid NOT NULL REFERENCES public.stock_tags(id) ON DELETE CASCADE, UNIQUE(trade_id, tag_id));
+CREATE TABLE public.stock_notes (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, ticker text NOT NULL, content text NOT NULL, note_date date NOT NULL DEFAULT CURRENT_DATE, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.stock_watchlists (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, name text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.stock_watchlist_items (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, watchlist_id uuid NOT NULL REFERENCES public.stock_watchlists(id) ON DELETE CASCADE, ticker text NOT NULL, name text, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(watchlist_id, ticker));
+DO $$ DECLARE t text; BEGIN FOREACH t IN ARRAY ARRAY['stock_trades','stock_sales','stock_tags','stock_trade_tags','stock_notes','stock_watchlists','stock_watchlist_items'] LOOP
+EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated', t);
+EXECUTE format('GRANT ALL ON public.%I TO service_role', t);
+EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
+EXECUTE format('ALTER TABLE public.%I FORCE ROW LEVEL SECURITY', t);
+EXECUTE format('CREATE POLICY "Users manage own rows" ON public.%I FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id)', t);
+END LOOP; END $$;
+CREATE TRIGGER update_stock_trades_updated_at BEFORE UPDATE ON public.stock_trades FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_stock_notes_updated_at BEFORE UPDATE ON public.stock_notes FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_stock_watchlists_updated_at BEFORE UPDATE ON public.stock_watchlists FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
