@@ -23,6 +23,7 @@ import Notes from "./pages/Notes";
 import Cars from "./pages/Cars";
 import Settings from "./pages/Settings";
 import Projects from "./pages/Projects";
+import Stocks from "./pages/Stocks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -165,6 +166,7 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            <Route path="/stocks" element={<ProtectedRoute><Stocks /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,4 +1,4 @@
-import { Home, Briefcase, CheckSquare, Clock, Calendar, BarChart, Dumbbell, TrendingUp, ListTodo, CalendarClock, StickyNote, LogOut, Car, Settings, FolderKanban } from "lucide-react";
+import { Home, Briefcase, CheckSquare, Clock, Calendar, BarChart, Dumbbell, TrendingUp, ListTodo, CalendarClock, StickyNote, LogOut, Car, Settings, FolderKanban, LineChart } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -27,6 +27,7 @@ const navItems = [
   { path: "/shifts", label: "Skift", icon: Clock },
   { path: "/calendar", label: "Kalender", icon: Calendar },
   { path: "/workouts", label: "Träning", icon: Dumbbell },
+  { path: "/stocks", label: "Aktier", icon: LineChart },
   { path: "/business", label: "Business", icon: TrendingUp },
   { path: "/statistics", label: "Statistik", icon: BarChart },
   { path: "/settings", label: "Inställningar", icon: Settings },
