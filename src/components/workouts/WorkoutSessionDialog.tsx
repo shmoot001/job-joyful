@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Info, Plus, Timer, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, History, Info, Plus, Timer, Trophy, X } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { sv } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,11 +18,15 @@ import {
 import { ExerciseImage } from "./ExerciseImage";
 import { ExerciseDetailDialog } from "./ExerciseDetailDialog";
 import { Stepper } from "./Stepper";
+import { bestBefore, formatSets, lastSessionBefore, type ExerciseHistory } from "@/data/workoutHistory";
 
 const DEFAULT_REST_SECONDS = 90;
 
 interface WorkoutSessionDialogProps {
   title: string;
+  /** The workout day's date (yyyy-MM-dd) – earlier days count as history */
+  date: string;
+  history: ExerciseHistory;
   exercises: PlannedExercise[];
   /** Persist the plan (with logged sets) – called on every ticked set and when closing. */
   onSave: (exercises: string | null) => void;
@@ -30,7 +36,14 @@ interface WorkoutSessionDialogProps {
 const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 /** Mount with a `key` per day so state resets when another day is opened. */
-export const WorkoutSessionDialog = ({ title, exercises: initial, onSave, onClose }: WorkoutSessionDialogProps) => {
+export const WorkoutSessionDialog = ({
+  title,
+  date,
+  history,
+  exercises: initial,
+  onSave,
+  onClose,
+}: WorkoutSessionDialogProps) => {
   const [exercises, setExercises] = useState<PlannedExercise[]>(() =>
     initial.map((p) => ({ ...p, log: fillLog(p) }))
   );
@@ -48,6 +61,13 @@ export const WorkoutSessionDialog = ({ title, exercises: initial, onSave, onClos
   const exercise = exercises[current];
   const def = exercise ? getExercise(exercise.exerciseId) : undefined;
   const log = exercise?.log ?? [];
+  const last = exercise ? lastSessionBefore(history, exercise.exerciseId, date) : undefined;
+  const best = exercise ? bestBefore(history, exercise.exerciseId, date) : { weight: 0, reps: 0 };
+
+  const isRecord = (set: SetLog) =>
+    set.done &&
+    !!last && // only once there is something to beat
+    (set.weight > 0 ? set.weight > best.weight : best.weight === 0 && set.reps > best.reps);
 
   // Alternate start/end photo so the movement is easy to see
   useEffect(() => {
@@ -87,6 +107,25 @@ export const WorkoutSessionDialog = ({ title, exercises: initial, onSave, onClos
     if (nowDone) setRestLeft(DEFAULT_REST_SECONDS);
   };
 
+  /** Copy last session's reps & weight onto the sets not yet done */
+  const applyLast = () => {
+    if (!last) return;
+    const next = exercises.map((p, i) =>
+      i === current
+        ? {
+            ...p,
+            log: (p.log ?? []).map((s, j) => {
+              if (s.done) return s;
+              const prev = last.sets[j] ?? last.sets[last.sets.length - 1];
+              return { ...s, reps: prev.reps, weight: prev.weight };
+            }),
+          }
+        : p
+    );
+    setExercises(next);
+    dirty.current = true;
+  };
+
   const addSet = () => {
     const last = log[log.length - 1] ?? { reps: exercise.reps, weight: exercise.weight };
     const next = exercises.map((p, i) =>
@@ -105,8 +144,14 @@ export const WorkoutSessionDialog = ({ title, exercises: initial, onSave, onClos
 
   const handleFinish = () => {
     save(exercises);
+    // Exercises where a new best weight was hit today
+    const records = exercises.filter((p) => {
+      if (!lastSessionBefore(history, p.exerciseId, date)) return false;
+      const prevBest = bestBefore(history, p.exerciseId, date).weight;
+      return (p.log ?? []).some((s) => s.done && s.weight > 0 && s.weight > prevBest);
+    }).length;
     toast({
-      title: progress.complete ? "Bra jobbat! 💪" : "Passet sparat",
+      title: records > 0 ? `${records} ${records === 1 ? "nytt rekord" : "nya rekord"}! 🏆` : progress.complete ? "Bra jobbat! 💪" : "Passet sparat",
       description:
         `${progress.done}/${progress.total} set klara` +
         (progress.volume > 0 ? ` · ${Math.round(progress.volume).toLocaleString("sv-SE")} kg totalt` : ""),
@@ -186,6 +231,26 @@ export const WorkoutSessionDialog = ({ title, exercises: initial, onSave, onClos
                 </p>
               </div>
 
+              {last && (
+                <div className="rounded-lg bg-muted/60 p-3 text-sm space-y-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="flex items-center gap-1.5 font-medium">
+                      <History className="h-4 w-4 text-muted-foreground" />
+                      Förra gången · {format(parseISO(last.date), "d MMM", { locale: sv })}
+                    </p>
+                    {log.some((s) => !s.done) && (
+                      <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={applyLast}>
+                        Använd samma
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground">{formatSets(last.sets)}</p>
+                  {best.weight > 0 && (
+                    <p className="text-xs text-muted-foreground">Rekord: {best.weight} kg</p>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-2">
                 {log.map((s, j) => (
                   <div
@@ -195,7 +260,15 @@ export const WorkoutSessionDialog = ({ title, exercises: initial, onSave, onClos
                       s.done && "bg-green-600/10 border-green-600/40"
                     )}
                   >
-                    <span className="w-10 text-sm font-medium text-muted-foreground">Set {j + 1}</span>
+                    <span className="w-10 text-sm font-medium text-muted-foreground flex flex-col leading-tight">
+                      Set {j + 1}
+                      {isRecord(s) && (
+                        <span className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-600">
+                          <Trophy className="h-3 w-3" />
+                          PR
+                        </span>
+                      )}
+                    </span>
                     <Stepper value={s.reps} step={1} min={1} onChange={(v) => updateSet(j, { reps: v })} format={(v) => `${v} st`} />
                     <Stepper
                       value={s.weight}

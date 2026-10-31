@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_measurements: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          photo_path: string | null
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          photo_path?: string | null
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          photo_path?: string | null
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
       business_transactions: {
         Row: {
           category: string
@@ -1014,6 +1044,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workout_programs: {
+        Row: {
+          created_at: string
+          days: Json
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          days?: Json
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          days?: Json
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       workout_weeks: {
         Row: {

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { ChevronDown, ChevronUp, Info, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, History, Info, Plus, Trash2 } from "lucide-react";
+import { parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -19,6 +20,8 @@ import { ExerciseImage } from "./ExerciseImage";
 import { Stepper } from "./Stepper";
 import { ExercisePickerDialog } from "./ExercisePickerDialog";
 import { ExerciseDetailDialog } from "./ExerciseDetailDialog";
+import { CopyDayDialog } from "./CopyDayDialog";
+import { RepeatSessionDialog, type PastDay } from "./RepeatSessionDialog";
 
 export interface EditingDay {
   weekId: string;
@@ -44,10 +47,21 @@ interface WorkoutDayDialogProps {
   onClose: () => void;
   onSave: (data: SaveDayData) => void;
   isUpdating: boolean;
+  /** Earlier planned days, for "repeat an earlier session" */
+  pastDays?: PastDay[];
+  /** Copy the day as currently edited to another date */
+  onCopyTo?: (data: SaveDayData, target: Date) => void;
 }
 
 /** Mount with a `key` per day so state resets when another day is opened. */
-export const WorkoutDayDialog = ({ day, onClose, onSave, isUpdating }: WorkoutDayDialogProps) => {
+export const WorkoutDayDialog = ({
+  day,
+  onClose,
+  onSave,
+  isUpdating,
+  pastDays = [],
+  onCopyTo,
+}: WorkoutDayDialogProps) => {
   const initial = parseDayPlan(day.exercises);
   const [planned, setPlanned] = useState<PlannedExercise[]>(initial.plan.exercises);
   const [legacyText, setLegacyText] = useState(initial.legacyText);
@@ -59,6 +73,8 @@ export const WorkoutDayDialog = ({ day, onClose, onSave, isUpdating }: WorkoutDa
   const [isRestDay, setIsRestDay] = useState(day.isRestDay);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [copyOpen, setCopyOpen] = useState(false);
+  const [repeatOpen, setRepeatOpen] = useState(false);
 
   const autoBodyPart = deriveBodyPart(planned);
   const totalSets = planned.reduce((sum, p) => sum + p.sets, 0);
@@ -85,15 +101,23 @@ export const WorkoutDayDialog = ({ day, onClose, onSave, isUpdating }: WorkoutDa
       return next;
     });
 
-  const handleSave = () => {
+  const buildData = (): SaveDayData => {
     // Keep legacy free text if the user hasn't moved to the new picker yet
     const exercises = planned.length ? serializeDayPlan(planned) : legacyText || null;
-    onSave({
+    return {
       bodyPart: isRestDay ? "" : bodyPart || autoBodyPart,
       exercises: isRestDay ? null : exercises,
       notes,
       isRestDay,
-    });
+    };
+  };
+
+  const handleSave = () => onSave(buildData());
+
+  const repeatSession = (past: PastDay) => {
+    setPlanned(past.exercises);
+    setBodyPart(past.bodyPart && past.bodyPart !== deriveBodyPart(past.exercises) ? past.bodyPart : "");
+    setLegacyText("");
   };
 
   return (
@@ -252,6 +276,12 @@ export const WorkoutDayDialog = ({ day, onClose, onSave, isUpdating }: WorkoutDa
                     <Plus className="h-4 w-4 mr-2" />
                     Lägg till övningar
                   </Button>
+                  {pastDays.length > 0 && (
+                    <Button type="button" variant="ghost" className="w-full" onClick={() => setRepeatOpen(true)}>
+                      <History className="h-4 w-4 mr-2" />
+                      Upprepa tidigare pass
+                    </Button>
+                  )}
                 </div>
               </>
             )}
@@ -262,6 +292,12 @@ export const WorkoutDayDialog = ({ day, onClose, onSave, isUpdating }: WorkoutDa
             </div>
 
             <div className="flex justify-end gap-2">
+              {onCopyTo && (
+                <Button variant="ghost" className="mr-auto" onClick={() => setCopyOpen(true)}>
+                  <Copy className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Kopiera till…</span>
+                </Button>
+              )}
               <Button variant="outline" onClick={onClose}>
                 Avbryt
               </Button>
@@ -280,6 +316,20 @@ export const WorkoutDayDialog = ({ day, onClose, onSave, isUpdating }: WorkoutDa
         alreadyPlanned={planned.map((p) => p.exerciseId)}
       />
       <ExerciseDetailDialog exerciseId={detailId} onClose={() => setDetailId(null)} />
+      {copyOpen && onCopyTo && (
+        <CopyDayDialog
+          sourceDate={day.date}
+          onClose={() => setCopyOpen(false)}
+          onCopy={(target) => onCopyTo(buildData(), target)}
+        />
+      )}
+      {repeatOpen && (
+        <RepeatSessionDialog
+          days={pastDays.filter((d) => parseISO(d.date).getTime() !== day.date.getTime())}
+          onClose={() => setRepeatOpen(false)}
+          onPick={repeatSession}
+        />
+      )}
     </>
   );
 };

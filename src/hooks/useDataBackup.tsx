@@ -16,6 +16,8 @@ interface BackupData {
     business_transactions: any[];
     workout_weeks: any[];
     workout_days: any[];
+    workout_programs?: any[];
+    body_measurements?: any[];
     profile: any;
   };
 }
@@ -49,6 +51,8 @@ export function useDataBackup() {
         transactionsRes,
         workoutWeeksRes,
         workoutDaysRes,
+        workoutProgramsRes,
+        bodyMeasurementsRes,
         profileRes,
       ] = await Promise.all([
         supabase.from("jobs").select("*").eq("user_id", user.id),
@@ -60,6 +64,8 @@ export function useDataBackup() {
         supabase.from("business_transactions").select("*").eq("user_id", user.id),
         supabase.from("workout_weeks").select("*").eq("user_id", user.id),
         supabase.from("workout_days").select("*").eq("user_id", user.id),
+        supabase.from("workout_programs").select("*").eq("user_id", user.id),
+        supabase.from("body_measurements").select("*").eq("user_id", user.id),
         supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       ]);
 
@@ -76,6 +82,8 @@ export function useDataBackup() {
           business_transactions: transactionsRes.data || [],
           workout_weeks: workoutWeeksRes.data || [],
           workout_days: workoutDaysRes.data || [],
+          workout_programs: workoutProgramsRes.data || [],
+          body_measurements: bodyMeasurementsRes.data || [],
           profile: profileRes.data,
         },
       };
@@ -283,6 +291,26 @@ export function useDataBackup() {
         if (daysToInsert.length > 0) {
           await supabase.from("workout_days").insert(daysToInsert);
         }
+      }
+
+      // Import saved workout programs
+      if (backup.data.workout_programs?.length) {
+        await supabase.from("workout_programs").insert(
+          backup.data.workout_programs.map((p: any) => ({ name: p.name, days: p.days, user_id: user.id }))
+        );
+      }
+
+      // Import body measurements (photo files aren't in the backup – keep the link only for this account's own photos)
+      if (backup.data.body_measurements?.length) {
+        await supabase.from("body_measurements").insert(
+          backup.data.body_measurements.map((m: any) => ({
+            date: m.date,
+            weight: m.weight,
+            notes: m.notes,
+            photo_path: m.photo_path?.startsWith(`${user.id}/`) ? m.photo_path : null,
+            user_id: user.id,
+          }))
+        );
       }
 
       toast({
