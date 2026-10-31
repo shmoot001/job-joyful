@@ -1,18 +1,20 @@
 import { useState } from "react";
-import { format, startOfWeek, addDays, isToday } from "date-fns";
+import { format, startOfWeek, addDays, isToday, parseISO } from "date-fns";
 import { sv } from "date-fns/locale";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Trash2, Dumbbell } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, Dumbbell, Copy, Play, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkouts } from "@/hooks/useWorkouts";
+import { parseDayPlan, planProgress, type PlannedExercise } from "@/data/exercises";
+import { ExerciseImage } from "@/components/workouts/ExerciseImage";
+import { WorkoutSessionDialog } from "@/components/workouts/WorkoutSessionDialog";
+import { WorkoutDayDialog, type EditingDay, type SaveDayData } from "@/components/workouts/WorkoutDayDialog";
 
 const Workouts = () => {
   const { 
@@ -23,20 +25,23 @@ const Workouts = () => {
     updateWorkoutDay,
     isUpdatingDay,
     deleteWorkoutWeek,
-    isDeletingWeek
+    isDeletingWeek,
+    duplicateWorkoutWeek,
+    isDuplicatingWeek,
+    saveDayProgress,
   } = useWorkouts();
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isNewWeekDialogOpen, setIsNewWeekDialogOpen] = useState(false);
-  const [editingDay, setEditingDay] = useState<{
-    weekId: string;
-    dayOfWeek: number;
-    date: Date;
-    bodyPart?: string;
-    exercises?: string;
-    notes?: string;
-    isRestDay?: boolean;
-  } | null>(null);
+  const [editingDay, setEditingDay] = useState<EditingDay | null>(null);
+  const [session, setSession] = useState<{ dayId: string; title: string; exercises: PlannedExercise[] } | null>(null);
+
+  const startSession = (dayId: string, date: Date, bodyPart: string | null, exercises: PlannedExercise[]) =>
+    setSession({
+      dayId,
+      title: `${getDayOfWeekName(date.getDay())} ${format(date, "d MMM", { locale: sv })}${bodyPart ? ` – ${bodyPart}` : ""}`,
+      exercises,
+    });
 
   const handleCreateWeek = () => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday start
@@ -44,12 +49,7 @@ const Workouts = () => {
     setIsNewWeekDialogOpen(false);
   };
 
-  const handleUpdateDay = (dayData: {
-    bodyPart: string;
-    exercises: string;
-    notes: string;
-    isRestDay: boolean;
-  }) => {
+  const handleUpdateDay = (dayData: SaveDayData) => {
     if (!editingDay) return;
 
     updateWorkoutDay({
@@ -69,9 +69,16 @@ const Workouts = () => {
     return days[dayOfWeek];
   };
 
-  const getDayData = (workoutWeek: any, dayOfWeek: number) => {
-    return workoutWeek.workout_days?.find((day: any) => day.day_of_week === dayOfWeek);
+  const getDayData = (workoutWeek: NonNullable<typeof workoutWeeks>[number], dayOfWeek: number) => {
+    return workoutWeek.workout_days?.find((day) => day.day_of_week === dayOfWeek);
   };
+
+  // Today's planned workout, if any
+  const todayDay = workoutWeeks
+    ?.flatMap((w) => w.workout_days ?? [])
+    .find((d) => d.date === format(new Date(), "yyyy-MM-dd") && !d.is_rest_day);
+  const todayPlan = todayDay ? parseDayPlan(todayDay.exercises).plan.exercises : [];
+  const todayProgress = planProgress(todayPlan);
 
   if (isLoadingWeeks) {
     return (
@@ -144,10 +151,41 @@ const Workouts = () => {
           </Dialog>
         </div>
 
+        {todayDay && todayPlan.length > 0 && (
+          <Card className="mb-6 border-primary/40 bg-primary/5">
+            <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex -space-x-3 shrink-0">
+                {todayPlan.slice(0, 4).map((p, i) => (
+                  <ExerciseImage key={i} exerciseId={p.exerciseId} className="h-12 w-12 rounded-full border-2 border-background" />
+                ))}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs uppercase tracking-wide text-primary font-medium">Dagens pass</p>
+                <p className="font-semibold truncate">{todayDay.body_part || "Träning"}</p>
+                <p className="text-sm text-muted-foreground">
+                  {todayPlan.length} övningar · {todayProgress.done}/{todayProgress.total} set klara
+                </p>
+              </div>
+              <Button
+                size="lg"
+                className="w-full sm:w-auto"
+                variant={todayProgress.complete ? "outline" : "default"}
+                onClick={() => startSession(todayDay.id, parseISO(todayDay.date), todayDay.body_part, todayPlan)}
+              >
+                {todayProgress.complete ? (
+                  <><CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />Klart – visa</>
+                ) : (
+                  <><Play className="h-4 w-4 mr-2" />{todayProgress.done > 0 ? "Fortsätt passet" : "Starta passet"}</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {workoutWeeks && workoutWeeks.length > 0 ? (
           <div className="space-y-6">
             {workoutWeeks.map((week) => {
-              const weekStart = new Date(week.week_start_date);
+              const weekStart = parseISO(week.week_start_date);
               const weekDays = Array.from({ length: 7 }, (_, i) => {
                 const day = addDays(weekStart, i);
                 return {
@@ -168,20 +206,36 @@ const Workouts = () => {
                         {format(weekStart, "d MMMM", { locale: sv })} - {format(addDays(weekStart, 6), "d MMMM yyyy", { locale: sv })}
                       </p>
                     </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteWorkoutWeek(week.id)}
-                      disabled={isDeletingWeek}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => duplicateWorkoutWeek(week.id)}
+                        disabled={isDuplicatingWeek}
+                        title="Kopiera till nästa vecka"
+                      >
+                        <Copy className="h-4 w-4" />
+                        <span className="hidden sm:inline ml-2">Kopiera till nästa vecka</span>
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm("Ta bort hela träningsveckan?")) deleteWorkoutWeek(week.id);
+                        }}
+                        disabled={isDeletingWeek}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardHeader>
                    <CardContent className="p-3 sm:p-6">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4">
                       {weekDays.map((day) => {
                         const dayData = getDayData(week, day.dayOfWeek);
                         const isCurrentDay = isToday(day.date);
+                        const { plan, legacyText } = parseDayPlan(dayData?.exercises);
+                        const progress = planProgress(plan.exercises);
                         
                         return (
                           <Card 
@@ -199,6 +253,7 @@ const Workouts = () => {
                               notes: dayData?.notes || "",
                               isRestDay: dayData?.is_rest_day || false,
                             })}
+                            role="button"
                           >
                             <CardContent className="p-2 sm:p-4">
                               <div className="text-center h-full flex flex-col justify-between">
@@ -220,15 +275,58 @@ const Workouts = () => {
                                       <p className="text-xs font-medium">Vila</p>
                                     </div>
                                   ) : dayData?.body_part || dayData?.exercises ? (
-                                    <div className="space-y-1 w-full">
+                                    <div className="space-y-1.5 w-full">
                                       {dayData.body_part && (
                                         <p className="text-xs sm:text-sm font-medium text-primary line-clamp-2">
                                           {dayData.body_part}
                                         </p>
                                       )}
-                                      {dayData.exercises && (
+                                      {plan.exercises.length > 0 && (
+                                        <>
+                                          <div className="flex justify-center -space-x-2">
+                                            {plan.exercises.slice(0, 3).map((p, i) => (
+                                              <ExerciseImage
+                                                key={i}
+                                                exerciseId={p.exerciseId}
+                                                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border-2 border-background"
+                                              />
+                                            ))}
+                                            {plan.exercises.length > 3 && (
+                                              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-medium">
+                                                +{plan.exercises.length - 3}
+                                              </div>
+                                            )}
+                                          </div>
+                                          {progress.complete ? (
+                                            <p className="text-[11px] font-medium text-green-600 flex items-center justify-center gap-1">
+                                              <CheckCircle2 className="h-3 w-3" /> Klart
+                                            </p>
+                                          ) : (
+                                            <p className="text-[11px] text-muted-foreground">
+                                              {progress.done > 0
+                                                ? `${progress.done}/${progress.total} set`
+                                                : `${plan.exercises.length} övn · ${progress.total} set`}
+                                            </p>
+                                          )}
+                                          {dayData && !dayData.is_rest_day && (
+                                            <Button
+                                              size="sm"
+                                              variant={progress.complete ? "ghost" : "secondary"}
+                                              className="h-7 w-full text-xs"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                startSession(dayData.id, day.date, dayData.body_part, plan.exercises);
+                                              }}
+                                            >
+                                              <Play className="h-3 w-3 mr-1" />
+                                              {progress.complete ? "Visa" : progress.done > 0 ? "Fortsätt" : "Starta"}
+                                            </Button>
+                                          )}
+                                        </>
+                                      )}
+                                      {legacyText && (
                                         <p className="text-xs text-muted-foreground line-clamp-2 hidden sm:block">
-                                          {dayData.exercises}
+                                          {legacyText}
                                         </p>
                                       )}
                                     </div>
@@ -261,114 +359,27 @@ const Workouts = () => {
         )}
 
         {/* Edit Day Dialog */}
-        <WorkoutDayDialog
-          isOpen={!!editingDay}
-          onClose={() => setEditingDay(null)}
-          onSave={handleUpdateDay}
-          dayData={editingDay}
-          isUpdating={isUpdatingDay}
-        />
+        {session && (
+          <WorkoutSessionDialog
+            key={session.dayId}
+            title={session.title}
+            exercises={session.exercises}
+            onSave={(exercises) => saveDayProgress({ dayId: session.dayId, exercises })}
+            onClose={() => setSession(null)}
+          />
+        )}
+
+        {editingDay && (
+          <WorkoutDayDialog
+            key={`${editingDay.weekId}-${editingDay.dayOfWeek}`}
+            day={editingDay}
+            onClose={() => setEditingDay(null)}
+            onSave={handleUpdateDay}
+            isUpdating={isUpdatingDay}
+          />
+        )}
       </div>
   );
-};
-
-// Workout Day Dialog Component
-const WorkoutDayDialog = ({
-  isOpen,
-  onClose,
-  onSave,
-  dayData,
-  isUpdating,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: { bodyPart: string; exercises: string; notes: string; isRestDay: boolean }) => void;
-  dayData: any;
-  isUpdating: boolean;
-}) => {
-  const [bodyPart, setBodyPart] = useState(dayData?.bodyPart || "");
-  const [exercises, setExercises] = useState(dayData?.exercises || "");
-  const [notes, setNotes] = useState(dayData?.notes || "");
-  const [isRestDay, setIsRestDay] = useState(dayData?.isRestDay || false);
-
-  const handleSave = () => {
-    onSave({ bodyPart, exercises, notes, isRestDay });
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto m-4">
-        <DialogHeader>
-          <DialogTitle className="text-base sm:text-lg">
-            {dayData ? `${getDayOfWeekName(dayData.dayOfWeek)} - ${format(dayData.date, "d MMM", { locale: sv })}` : "Planera träningsdag"}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="restDay"
-              checked={isRestDay}
-              onChange={(e) => setIsRestDay(e.target.checked)}
-              className="h-4 w-4"
-            />
-            <Label htmlFor="restDay">Vilodag</Label>
-          </div>
-
-          {!isRestDay && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="bodyPart">Muskelgrupp/Kroppspart</Label>
-                <Input
-                  id="bodyPart"
-                  placeholder="t.ex. Bröst & Triceps, Ben, Rygg & Biceps"
-                  value={bodyPart}
-                  onChange={(e) => setBodyPart(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="exercises">Övningar</Label>
-                <Textarea
-                  id="exercises"
-                  placeholder="Skriv dina planerade övningar här..."
-                  value={exercises}
-                  onChange={(e) => setExercises(e.target.value)}
-                  rows={4}
-                />
-              </div>
-            </>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Anteckningar</Label>
-            <Textarea
-              id="notes"
-              placeholder="Eventuella anteckningar..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose}>
-              Avbryt
-            </Button>
-            <Button onClick={handleSave} disabled={isUpdating}>
-              {isUpdating ? "Sparar..." : "Spara"}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-// Helper function for day names
-const getDayOfWeekName = (dayOfWeek: number) => {
-  const days = ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"];
-  return days[dayOfWeek];
 };
 
 export default Workouts;

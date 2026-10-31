@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "@/hooks/use-toast";
-import { format, startOfWeek, addDays, getWeek, getYear } from "date-fns";
+import { clearPlanLogs } from "@/data/exercises";
+import { format, addDays, getISOWeek, getISOWeekYear, parseISO } from "date-fns";
 
 export const useWorkouts = () => {
   const { user } = useAuth();
@@ -38,8 +39,8 @@ export const useWorkouts = () => {
     mutationFn: async (weekStartDate: Date) => {
       if (!user?.id) throw new Error("User not authenticated");
 
-      const weekNumber = getWeek(weekStartDate);
-      const year = getYear(weekStartDate);
+      const weekNumber = getISOWeek(weekStartDate);
+      const year = getISOWeekYear(weekStartDate);
 
       const { data, error } = await supabase
         .from("workout_weeks")
@@ -86,7 +87,7 @@ export const useWorkouts = () => {
       dayOfWeek: number;
       date: Date;
       bodyPart?: string;
-      exercises?: string;
+      exercises?: string | null;
       notes?: string;
       isRestDay?: boolean;
     }) => {
@@ -150,6 +151,88 @@ export const useWorkouts = () => {
     },
   });
 
+  // Save workout progress (logged sets) silently, without toasts
+  const saveDayProgress = useMutation({
+    mutationFn: async ({ dayId, exercises }: { dayId: string; exercises: string | null }) => {
+      const { error } = await supabase.from("workout_days").update({ exercises }).eq("id", dayId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workout-weeks"] });
+    },
+    onError: () => {
+      toast({ title: "Fel", description: "Kunde inte spara passet", variant: "destructive" });
+    },
+  });
+
+  // Copy a week (all days, exercises, sets & reps) to the following week
+  const duplicateWorkoutWeek = useMutation({
+    mutationFn: async (weekId: string) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const { data: source, error: srcError } = await supabase
+        .from("workout_weeks")
+        .select("*, workout_days (*)")
+        .eq("id", weekId)
+        .single();
+      if (srcError) throw srcError;
+
+      const newStart = addDays(parseISO(source.week_start_date), 7);
+      const newStartStr = format(newStart, "yyyy-MM-dd");
+
+      const { data: existing } = await supabase
+        .from("workout_weeks")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("week_start_date", newStartStr)
+        .maybeSingle();
+      if (existing) throw new Error("WEEK_EXISTS");
+
+      const { data: newWeek, error: weekError } = await supabase
+        .from("workout_weeks")
+        .insert({
+          user_id: user.id,
+          week_start_date: newStartStr,
+          week_number: getISOWeek(newStart),
+          year: getISOWeekYear(newStart),
+          notes: source.notes,
+        })
+        .select()
+        .single();
+      if (weekError) throw weekError;
+
+      const days = (source.workout_days || []).map((d) => ({
+        user_id: user.id,
+        workout_week_id: newWeek.id,
+        day_of_week: d.day_of_week,
+        date: format(addDays(parseISO(d.date), 7), "yyyy-MM-dd"),
+        body_part: d.body_part,
+        exercises: clearPlanLogs(d.exercises),
+        notes: d.notes,
+        is_rest_day: d.is_rest_day,
+      }));
+      if (days.length) {
+        const { error: daysError } = await supabase.from("workout_days").insert(days);
+        if (daysError) throw daysError;
+      }
+      return newWeek;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workout-weeks"] });
+      toast({ title: "Kopierad", description: "Veckan kopierades till nästa vecka" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Fel",
+        description:
+          error instanceof Error && error.message === "WEEK_EXISTS"
+            ? "Nästa vecka finns redan"
+            : "Kunde inte kopiera veckan",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete workout week
   const deleteWorkoutWeek = useMutation({
     mutationFn: async (weekId: string) => {
@@ -184,6 +267,9 @@ export const useWorkouts = () => {
     isCreatingWeek: createWorkoutWeek.isPending,
     updateWorkoutDay: updateWorkoutDay.mutate,
     isUpdatingDay: updateWorkoutDay.isPending,
+    saveDayProgress: saveDayProgress.mutate,
+    duplicateWorkoutWeek: duplicateWorkoutWeek.mutate,
+    isDuplicatingWeek: duplicateWorkoutWeek.isPending,
     deleteWorkoutWeek: deleteWorkoutWeek.mutate,
     isDeletingWeek: deleteWorkoutWeek.isPending,
   };
