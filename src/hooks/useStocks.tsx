@@ -64,6 +64,10 @@ export function useStocks() {
       await run(() => db.from("stock_trade_tags").delete().eq("trade_id", tradeId));
       if (tagIds.length) await run(() => db.from("stock_trade_tags").insert(tagIds.map((tag_id) => ({ tag_id, trade_id: tradeId, user_id: uid }))));
     },
+    updateTrade: (id: string, t: Omit<StockTrade, "id">) =>
+      run(() => db.from("stock_trades").update(t).eq("id", id), "Köp uppdaterat"),
+    updateSale: (id: string, sale: Omit<StockSale, "id" | "trade_id">) =>
+      run(() => db.from("stock_sales").update(sale).eq("id", id), "Försäljning uppdaterad"),
     deleteTrade: (id: string) => run(() => db.from("stock_trades").delete().eq("id", id), "Position borttagen"),
     addSale: (s: Omit<StockSale, "id">) => run(() => db.from("stock_sales").insert({ ...s, user_id: uid }), "Försäljning registrerad"),
     deleteSale: (id: string) => run(() => db.from("stock_sales").delete().eq("id", id), "Försäljning borttagen"),

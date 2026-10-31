@@ -1,257 +1,125 @@
 import { useMemo, useState } from "react";
-import { format, differenceInDays, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Plus, Trash2, Pencil, Check, X, Tag as TagIcon } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useStocks, StockTrade, StockSale } from "@/hooks/useStocks";
+import { useStocks, type StockTrade, type StockSale, type StockTag } from "@/hooks/useStocks";
+import { buildLots, buildPositions, computeRealized, pct, pnlClass, sek, EPS, type Realized } from "@/lib/stockCalc";
+import { TagPicker } from "@/components/stocks/TagPicker";
+import { TradeDialog } from "@/components/stocks/TradeDialog";
+import { SaleDialog } from "@/components/stocks/SaleDialog";
+import { PositionsView } from "@/components/stocks/PositionsView";
+import { SalesList } from "@/components/stocks/SalesList";
+import { PortfolioOverview } from "@/components/stocks/PortfolioOverview";
 
 const today = () => format(new Date(), "yyyy-MM-dd");
-const sek = (n: number) => `${n.toLocaleString("sv-SE", { maximumFractionDigits: 0 })} kr`;
-const amt = (n: number, c: string) => `${n.toLocaleString("sv-SE", { maximumFractionDigits: 2 })} ${c}`;
-const pct = (n: number) => `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
-const pnlClass = (n: number) => (n > 0 ? "text-green-600 dark:text-green-400" : n < 0 ? "text-destructive" : "");
 const TAG_COLORS = ["#3B82F6", "#22C55E", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4"];
 
-interface Realized {
-  sale: StockSale; trade: StockTrade; costSEK: number; pnlSEK: number; pnlLocal: number;
-  stockEffectSEK: number; fxEffectSEK: number; pnlPct: number; holdDays: number;
-}
-
-function computeRealized(trade: StockTrade, sale: StockSale): Realized {
-  const feeShare = trade.shares > 0 ? (trade.fees * sale.shares) / trade.shares : 0;
-  const costSEK = sale.shares * trade.buy_price * trade.buy_fx_rate + feeShare;
-  const proceedsSEK = sale.shares * sale.sell_price * sale.sell_fx_rate - sale.fees;
-  const pnlSEK = proceedsSEK - costSEK;
-  const pnlLocal = sale.shares * (sale.sell_price - trade.buy_price);
-  const stockEffectSEK = pnlLocal * trade.buy_fx_rate;
-  const fxEffectSEK = sale.shares * sale.sell_price * (sale.sell_fx_rate - trade.buy_fx_rate);
-  return {
-    sale, trade, costSEK, pnlSEK, pnlLocal, stockEffectSEK, fxEffectSEK,
-    pnlPct: costSEK ? (pnlSEK / costSEK) * 100 : 0,
-    holdDays: differenceInDays(parseISO(sale.sell_date), parseISO(trade.buy_date)),
-  };
-}
+type TradeDialogState = { trade?: StockTrade; prefill?: { ticker: string; name: string | null; currency: string } } | null;
 
 export default function Stocks() {
   const s = useStocks();
-  const [buyOpen, setBuyOpen] = useState(false);
-  const [sellTrade, setSellTrade] = useState<StockTrade | null>(null);
+  const [tradeDialog, setTradeDialog] = useState<TradeDialogState>(null);
+  const [saleDialog, setSaleDialog] = useState<{ trade: StockTrade; sale?: StockSale } | null>(null);
   const [tagsOpen, setTagsOpen] = useState(false);
   const [tagEditTrade, setTagEditTrade] = useState<StockTrade | null>(null);
 
-  const soldShares = (id: string) => s.sales.filter((x) => x.trade_id === id).reduce((a, b) => a + b.shares, 0);
-  const tagsFor = (id: string) => s.tradeTags.filter((t) => t.trade_id === id).map((t) => s.tags.find((g) => g.id === t.tag_id)).filter(Boolean) as any[];
+  const tagsFor = (id: string): StockTag[] =>
+    s.tradeTags
+      .filter((t) => t.trade_id === id)
+      .map((t) => s.tags.find((g) => g.id === t.tag_id))
+      .filter((g): g is StockTag => !!g);
 
-  const open = s.trades.filter((t) => t.shares - soldShares(t.id) > 1e-9);
-  const closed = s.trades.filter((t) => t.shares - soldShares(t.id) <= 1e-9);
+  const lots = useMemo(() => buildLots(s.trades, s.sales, tagsFor), [s.trades, s.sales, s.tradeTags, s.tags]); // eslint-disable-line react-hooks/exhaustive-deps
+  const openLots = lots.filter((l) => l.remaining > EPS);
+  const positions = useMemo(() => buildPositions(lots), [lots]);
+  const totalCost = positions.reduce((a, p) => a + p.costSEK, 0);
+  const realized = useMemo(
+    () =>
+      s.sales
+        .map((sale) => {
+          const t = s.trades.find((x) => x.id === sale.trade_id);
+          return t ? computeRealized(t, sale) : null;
+        })
+        .filter((r): r is Realized => !!r),
+    [s.sales, s.trades]
+  );
+
+  if (s.isLoading) {
+    return <main className="container mx-auto px-4 py-8 text-muted-foreground">Laddar…</main>;
+  }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-6 sm:py-8">
       <div className="flex flex-wrap justify-between items-center gap-2 mb-6">
-        <h1 className="text-3xl font-bold">Aktier</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Aktier</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setTagsOpen(true)}><TagIcon className="w-4 h-4 mr-2" />Taggar</Button>
-          <Button onClick={() => setBuyOpen(true)}><Plus className="w-4 h-4 mr-2" />Nytt köp</Button>
+          <Button variant="outline" onClick={() => setTagsOpen(true)}>
+            <TagIcon className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Taggar</span>
+          </Button>
+          <Button onClick={() => setTradeDialog({})}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nytt köp
+          </Button>
         </div>
       </div>
 
       <Tabs defaultValue="positions">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="positions">Positioner</TabsTrigger>
+        <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:inline-flex h-auto">
+          <TabsTrigger value="positions">Portfölj</TabsTrigger>
           <TabsTrigger value="stats">Statistik</TabsTrigger>
-          <TabsTrigger value="notes">Anteckningar</TabsTrigger>
-          <TabsTrigger value="watch">Bevakningslistor</TabsTrigger>
+          <TabsTrigger value="notes">Anteckn.</TabsTrigger>
+          <TabsTrigger value="watch">Bevakning</TabsTrigger>
         </TabsList>
 
         <TabsContent value="positions" className="space-y-6">
-          <Card>
-            <CardHeader><CardTitle>Öppna positioner ({open.length})</CardTitle></CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Aktie</TableHead><TableHead>Köpdatum</TableHead><TableHead>Antal kvar</TableHead>
-                  <TableHead>Köpkurs</TableHead><TableHead>Kurs SEK</TableHead><TableHead>Investerat (SEK)</TableHead>
-                  <TableHead>Innehavstid</TableHead><TableHead>Taggar</TableHead><TableHead></TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {open.map((t) => {
-                    const rem = t.shares - soldShares(t.id);
-                    return (
-                      <TableRow key={t.id}>
-                        <TableCell><div className="font-medium">{t.ticker}</div><div className="text-xs text-muted-foreground">{t.name}</div></TableCell>
-                        <TableCell>{t.buy_date}</TableCell>
-                        <TableCell>{rem}{rem !== t.shares && <span className="text-xs text-muted-foreground"> / {t.shares}</span>}</TableCell>
-                        <TableCell>{amt(t.buy_price, t.currency)}</TableCell>
-                        <TableCell>{t.buy_fx_rate}</TableCell>
-                        <TableCell>{sek(rem * t.buy_price * t.buy_fx_rate)}</TableCell>
-                        <TableCell>{differenceInDays(new Date(), parseISO(t.buy_date))} d</TableCell>
-                        <TableCell><TagList tags={tagsFor(t.id)} onEdit={() => setTagEditTrade(t)} /></TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          <Button size="sm" variant="outline" onClick={() => setSellTrade(t)}>Sälj</Button>
-                          <Button size="icon" variant="ghost" onClick={() => confirm("Ta bort positionen?") && s.deleteTrade(t.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {!open.length && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">Inga öppna positioner</TableCell></TableRow>}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>Försäljningar & stängda positioner</CardTitle></CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Aktie</TableHead><TableHead>Köp → Sälj</TableHead><TableHead>Antal</TableHead>
-                  <TableHead>Köp / Sälj kurs</TableHead><TableHead>Resultat (valuta)</TableHead><TableHead>Resultat SEK</TableHead>
-                  <TableHead>Varav aktie / valuta</TableHead><TableHead>Tid</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {s.sales.map((sale) => {
-                    const t = s.trades.find((x) => x.id === sale.trade_id);
-                    if (!t) return null;
-                    const r = computeRealized(t, sale);
-                    const isClosed = closed.includes(t);
-                    return (
-                      <TableRow key={sale.id}>
-                        <TableCell><div className="font-medium">{t.ticker}</div><TagList tags={tagsFor(t.id)} /></TableCell>
-                        <TableCell className="whitespace-nowrap">{t.buy_date} → {sale.sell_date}</TableCell>
-                        <TableCell>{sale.shares}</TableCell>
-                        <TableCell className="whitespace-nowrap">{t.buy_price} / {sale.sell_price} {t.currency}</TableCell>
-                        <TableCell className={pnlClass(r.pnlLocal)}>{amt(r.pnlLocal, t.currency)}</TableCell>
-                        <TableCell className={pnlClass(r.pnlSEK)}>{sek(r.pnlSEK)} <span className="text-xs">({pct(r.pnlPct)})</span></TableCell>
-                        <TableCell className="text-xs whitespace-nowrap"><span className={pnlClass(r.stockEffectSEK)}>{sek(r.stockEffectSEK)}</span> / <span className={pnlClass(r.fxEffectSEK)}>{sek(r.fxEffectSEK)}</span></TableCell>
-                        <TableCell>{r.holdDays} d</TableCell>
-                        <TableCell><Badge variant={isClosed ? "secondary" : "outline"}>{isClosed ? "Stängd" : "Delsåld"}</Badge></TableCell>
-                        <TableCell><Button size="icon" variant="ghost" onClick={() => s.deleteSale(sale.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {!s.sales.length && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">Inga försäljningar ännu</TableCell></TableRow>}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <PortfolioOverview positions={positions} openLots={openLots} realized={realized} tags={s.tags} />
+          <PositionsView
+            positions={positions}
+            totalCost={totalCost}
+            actions={{
+              onSell: (trade) => setSaleDialog({ trade }),
+              onEditTrade: (trade) => setTradeDialog({ trade }),
+              onDeleteTrade: (trade) => {
+                const sold = s.sales.some((x) => x.trade_id === trade.id);
+                if (confirm(sold ? `Ta bort köpet av ${trade.ticker}? Dess försäljningar tas också bort.` : `Ta bort köpet av ${trade.ticker}?`))
+                  s.deleteTrade(trade.id);
+              },
+              onEditTags: setTagEditTrade,
+              onBuyMore: (p) => setTradeDialog({ prefill: { ticker: p.ticker, name: p.name, currency: p.currency } }),
+            }}
+          />
+          <SalesList
+            realized={realized}
+            lots={lots}
+            onEdit={(trade, sale) => setSaleDialog({ trade, sale })}
+            onDelete={(sale) => confirm("Ta bort försäljningen?") && s.deleteSale(sale.id)}
+          />
         </TabsContent>
 
-        <TabsContent value="stats"><StatsTab s={s} tagsFor={tagsFor} /></TabsContent>
+        <TabsContent value="stats"><StatsTab s={s} /></TabsContent>
         <TabsContent value="notes"><NotesTab s={s} /></TabsContent>
         <TabsContent value="watch"><WatchTab s={s} /></TabsContent>
       </Tabs>
 
-      <BuyDialog open={buyOpen} onOpenChange={setBuyOpen} s={s} />
-      <SellDialog trade={sellTrade} onClose={() => setSellTrade(null)} s={s} remaining={sellTrade ? sellTrade.shares - soldShares(sellTrade.id) : 0} />
+      {tradeDialog && <TradeDialog s={s} trade={tradeDialog.trade} prefill={tradeDialog.prefill} onClose={() => setTradeDialog(null)} />}
+      {saleDialog && <SaleDialog s={s} trade={saleDialog.trade} sale={saleDialog.sale} onClose={() => setSaleDialog(null)} />}
       <TagsDialog open={tagsOpen} onOpenChange={setTagsOpen} s={s} />
-      <EditTradeTagsDialog trade={tagEditTrade} onClose={() => setTagEditTrade(null)} s={s} />
+      {tagEditTrade && <EditTradeTagsDialog key={tagEditTrade.id} trade={tagEditTrade} onClose={() => setTagEditTrade(null)} s={s} />}
     </main>
   );
 }
 
-function TagList({ tags, onEdit }: { tags: any[]; onEdit?: () => void }) {
-  return (
-    <div className="flex flex-wrap gap-1 items-center">
-      {tags.map((g) => <Badge key={g.id} style={{ backgroundColor: g.color }} className="text-primary-foreground border-0">{g.name}</Badge>)}
-      {onEdit && <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onEdit}><Pencil className="w-3 h-3" /></Button>}
-    </div>
-  );
-}
+type Stocks = ReturnType<typeof useStocks>;
 
-function TagPicker({ s, value, onChange }: { s: ReturnType<typeof useStocks>; value: string[]; onChange: (v: string[]) => void }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {s.tags.map((g) => {
-        const on = value.includes(g.id);
-        return (
-          <button key={g.id} type="button" onClick={() => onChange(on ? value.filter((x) => x !== g.id) : [...value, g.id])}
-            className={`px-2 py-1 rounded-full text-xs border-2 ${on ? "text-primary-foreground" : ""}`}
-            style={{ borderColor: g.color, backgroundColor: on ? g.color : "transparent" }}>{g.name}</button>
-        );
-      })}
-      {!s.tags.length && <span className="text-xs text-muted-foreground">Skapa taggar via "Taggar"-knappen</span>}
-    </div>
-  );
-}
-
-function BuyDialog({ open, onOpenChange, s }: any) {
-  const empty = { ticker: "", name: "", buy_date: today(), shares: "", buy_price: "", currency: "SEK", buy_fx_rate: "1", fees: "" };
-  const [f, setF] = useState<any>(empty);
-  const [tagIds, setTagIds] = useState<string[]>([]);
-  const set = (k: string) => (e: any) => setF({ ...f, [k]: e.target.value });
-  const submit = async () => {
-    if (!f.ticker || !f.shares || !f.buy_price) return;
-    await s.addTrade({
-      ticker: f.ticker.trim().toUpperCase(), name: f.name || null, buy_date: f.buy_date, shares: +f.shares,
-      buy_price: +f.buy_price, currency: f.currency.toUpperCase(), buy_fx_rate: f.currency.toUpperCase() === "SEK" ? 1 : +f.buy_fx_rate || 1, fees: +f.fees || 0,
-    }, tagIds);
-    setF(empty); setTagIds([]); onOpenChange(false);
-  };
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Registrera köp</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-3">
-          <div><Label>Ticker *</Label><Input value={f.ticker} onChange={set("ticker")} placeholder="AAPL" /></div>
-          <div><Label>Namn</Label><Input value={f.name} onChange={set("name")} placeholder="Apple Inc." /></div>
-          <div><Label>Köpdatum</Label><Input type="date" value={f.buy_date} onChange={set("buy_date")} /></div>
-          <div><Label>Antal aktier *</Label><Input type="number" value={f.shares} onChange={set("shares")} /></div>
-          <div><Label>Köpkurs *</Label><Input type="number" step="any" value={f.buy_price} onChange={set("buy_price")} /></div>
-          <div><Label>Valuta</Label>
-            <Select value={f.currency} onValueChange={(v) => setF({ ...f, currency: v, buy_fx_rate: v === "SEK" ? "1" : f.buy_fx_rate })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{["SEK", "USD", "EUR", "NOK", "DKK", "GBP", "CAD", "CHF", "JPY"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div><Label>Växelkurs till SEK</Label><Input type="number" step="any" value={f.buy_fx_rate} onChange={set("buy_fx_rate")} disabled={f.currency === "SEK"} /></div>
-          <div><Label>Avgifter (SEK)</Label><Input type="number" step="any" value={f.fees} onChange={set("fees")} placeholder="0" /></div>
-        </div>
-        <div><Label>Taggar</Label><div className="mt-2"><TagPicker s={s} value={tagIds} onChange={setTagIds} /></div></div>
-        <DialogFooter><Button onClick={submit}>Spara</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function SellDialog({ trade, onClose, s, remaining }: any) {
-  const [f, setF] = useState<any>({ sell_date: today(), shares: "", sell_price: "", sell_fx_rate: "", fees: "" });
-  const set = (k: string) => (e: any) => setF({ ...f, [k]: e.target.value });
-  if (!trade) return null;
-  const submit = async () => {
-    const sh = +f.shares;
-    if (!sh || sh > remaining + 1e-9 || !f.sell_price) return;
-    await s.addSale({ trade_id: trade.id, sell_date: f.sell_date, shares: sh, sell_price: +f.sell_price, sell_fx_rate: trade.currency === "SEK" ? 1 : +f.sell_fx_rate || trade.buy_fx_rate, fees: +f.fees || 0 });
-    setF({ sell_date: today(), shares: "", sell_price: "", sell_fx_rate: "", fees: "" }); onClose();
-  };
-  return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Sälj {trade.ticker} ({remaining} kvar)</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-3">
-          <div><Label>Säljdatum</Label><Input type="date" value={f.sell_date} onChange={set("sell_date")} /></div>
-          <div><Label>Antal (max {remaining})</Label>
-            <div className="flex gap-1"><Input type="number" value={f.shares} onChange={set("shares")} /><Button type="button" variant="outline" onClick={() => setF({ ...f, shares: String(remaining) })}>Alla</Button></div>
-          </div>
-          <div><Label>Säljkurs ({trade.currency})</Label><Input type="number" step="any" value={f.sell_price} onChange={set("sell_price")} /></div>
-          <div><Label>Växelkurs till SEK</Label><Input type="number" step="any" value={trade.currency === "SEK" ? "1" : f.sell_fx_rate} onChange={set("sell_fx_rate")} disabled={trade.currency === "SEK"} placeholder={String(trade.buy_fx_rate)} /></div>
-          <div><Label>Avgifter (SEK)</Label><Input type="number" step="any" value={f.fees} onChange={set("fees")} placeholder="0" /></div>
-        </div>
-        <DialogFooter><Button onClick={submit}>Registrera försäljning</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function TagsDialog({ open, onOpenChange, s }: any) {
+function TagsDialog({ open, onOpenChange, s }: { open: boolean; onOpenChange: (o: boolean) => void; s: Stocks }) {
   const [name, setName] = useState("");
   const [color, setColor] = useState(TAG_COLORS[0]);
   return (
@@ -264,7 +132,7 @@ function TagsDialog({ open, onOpenChange, s }: any) {
         </div>
         <div className="flex gap-1">{TAG_COLORS.map((c) => <button key={c} type="button" onClick={() => setColor(c)} className={`w-6 h-6 rounded-full border-2 ${color === c ? "border-foreground" : "border-transparent"}`} style={{ backgroundColor: c }} />)}</div>
         <div className="space-y-2">
-          {s.tags.map((g: any) => (
+          {s.tags.map((g) => (
             <div key={g.id} className="flex justify-between items-center p-2 rounded bg-muted/50">
               <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ backgroundColor: g.color }} />{g.name}</span>
               <Button size="icon" variant="ghost" onClick={() => s.deleteTag(g.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
@@ -276,22 +144,20 @@ function TagsDialog({ open, onOpenChange, s }: any) {
   );
 }
 
-function EditTradeTagsDialog({ trade, onClose, s }: any) {
-  const [val, setVal] = useState<string[] | null>(null);
-  if (!trade) return null;
-  const current = val ?? s.tradeTags.filter((t: any) => t.trade_id === trade.id).map((t: any) => t.tag_id);
+function EditTradeTagsDialog({ trade, onClose, s }: { trade: StockTrade; onClose: () => void; s: Stocks }) {
+  const [val, setVal] = useState<string[]>(s.tradeTags.filter((t) => t.trade_id === trade.id).map((t) => t.tag_id));
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) { setVal(null); onClose(); } }}>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Taggar för {trade.ticker}</DialogTitle></DialogHeader>
-        <TagPicker s={s} value={current} onChange={setVal} />
-        <DialogFooter><Button onClick={async () => { await s.updateTradeTags(trade.id, current); setVal(null); onClose(); }}>Spara</Button></DialogFooter>
+        <DialogHeader><DialogTitle>Taggar för {trade.ticker} ({trade.buy_date})</DialogTitle></DialogHeader>
+        <TagPicker tags={s.tags} value={val} onChange={setVal} />
+        <DialogFooter><Button onClick={async () => { await s.updateTradeTags(trade.id, val); onClose(); }}>Spara</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-function StatsTab({ s, tagsFor }: { s: ReturnType<typeof useStocks>; tagsFor: (id: string) => any[] }) {
+function StatsTab({ s }: { s: Stocks }) {
   const [month, setMonth] = useState("all");
   const [ticker, setTicker] = useState("all");
   const [tag, setTag] = useState("all");
@@ -329,7 +195,7 @@ function StatsTab({ s, tagsFor }: { s: ReturnType<typeof useStocks>; tagsFor: (i
     .map(([ticker, pnl]) => ({ ticker, pnl: Math.round(pnl) })).sort((a, b) => b.pnl - a.pnl);
   const sorted = [...realized].sort((a, b) => sortBy === "sek" ? b.pnlSEK - a.pnlSEK : b.pnlPct - a.pnlPct);
 
-  const Stat = ({ label, value, cls = "" }: any) => (
+  const Stat = ({ label, value, cls = "" }: { label: string; value: string; cls?: string }) => (
     <Card><CardContent className="pt-6"><div className="text-sm text-muted-foreground">{label}</div><div className={`text-2xl font-bold ${cls}`}>{value}</div></CardContent></Card>
   );
   const TradeRow = ({ r }: { r: Realized }) => (
@@ -387,7 +253,7 @@ function StatsTab({ s, tagsFor }: { s: ReturnType<typeof useStocks>; tagsFor: (i
   );
 }
 
-function NotesTab({ s }: { s: ReturnType<typeof useStocks> }) {
+function NotesTab({ s }: { s: Stocks }) {
   const tickers = Array.from(new Set([...s.trades.map((t) => t.ticker), ...s.notes.map((n) => n.ticker), ...s.watchlistItems.map((w) => w.ticker)])).sort();
   const [ticker, setTicker] = useState("");
   const [custom, setCustom] = useState("");
@@ -424,7 +290,7 @@ function NotesTab({ s }: { s: ReturnType<typeof useStocks> }) {
   );
 }
 
-function WatchTab({ s }: { s: ReturnType<typeof useStocks> }) {
+function WatchTab({ s }: { s: Stocks }) {
   const [newList, setNewList] = useState("");
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(null);
   const [inputs, setInputs] = useState<Record<string, { ticker: string; name: string }>>({});
