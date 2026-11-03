@@ -15,6 +15,7 @@ export const MUSCLE_GROUPS: { id: MuscleGroup; label: string }[] = [
   { id: "shoulders", label: "Axlar" },
   { id: "biceps", label: "Biceps" },
   { id: "triceps", label: "Triceps" },
+  { id: "forearms", label: "Underarmar" },
   { id: "core", label: "Mage" },
   { id: "cardio", label: "Kondition" },
 ];
@@ -91,9 +92,26 @@ export const deriveBodyPart = (exercises: PlannedExercise[]): string => {
   return groups.map(muscleGroupLabel).join(" & ");
 };
 
+/** Planned weight for a given set (per-set weight if set, otherwise the common weight). */
+export const plannedWeight = (p: PlannedExercise, setIndex: number): number =>
+  p.setWeights?.[setIndex] ?? p.weight;
+
+/** Planned weights for all sets, e.g. [40, 50, 60]. */
+export const plannedWeights = (p: PlannedExercise): number[] =>
+  Array.from({ length: p.sets }, (_, i) => plannedWeight(p, i));
+
+/** Short text for the planned weight: "60 kg", "40–60 kg" or "" for bodyweight. */
+export const plannedWeightLabel = (p: PlannedExercise): string => {
+  const ws = plannedWeights(p);
+  const min = Math.min(...ws);
+  const max = Math.max(...ws);
+  if (max === 0) return "";
+  return min === max ? `${max} kg` : `${ws.map((w) => (w === 0 ? "–" : w)).join(" / ")} kg`;
+};
+
 /** Log rows for every planned set, keeping what's already been logged. */
 export const fillLog = (p: PlannedExercise): SetLog[] =>
-  Array.from({ length: p.sets }, (_, i) => p.log?.[i] ?? { reps: p.reps, weight: p.weight, done: false });
+  Array.from({ length: p.sets }, (_, i) => p.log?.[i] ?? { reps: p.reps, weight: plannedWeight(p, i), done: false });
 
 export const planProgress = (exercises: PlannedExercise[]) => {
   let done = 0;

@@ -5,6 +5,7 @@ export type MuscleGroup =
   | "shoulders"
   | "biceps"
   | "triceps"
+  | "forearms"
   | "core"
   | "cardio";
 
@@ -35,6 +36,8 @@ export interface PlannedExercise {
   reps: number;
   /** Weight in kg, 0 = bodyweight / not set */
   weight: number;
+  /** Optional planned weight per set (kg). When set, overrides `weight` for that set. */
+  setWeights?: number[];
   /** Filled in during the workout, one entry per set */
   log?: SetLog[];
 }

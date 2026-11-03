@@ -90,6 +90,39 @@ export const WorkoutDayDialog = ({
   const update = (index: number, patch: Partial<PlannedExercise>) =>
     setPlanned((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
 
+  /** Change the number of sets, keeping per-set weights in sync. */
+  const setSets = (index: number, sets: number) =>
+    setPlanned((prev) =>
+      prev.map((p, i) => {
+        if (i !== index) return p;
+        if (!p.setWeights) return { ...p, sets };
+        const last = p.setWeights[p.setWeights.length - 1] ?? p.weight;
+        const setWeights = Array.from({ length: sets }, (_, j) => p.setWeights?.[j] ?? last);
+        return { ...p, sets, setWeights };
+      })
+    );
+
+  const togglePerSetWeights = (index: number) =>
+    setPlanned((prev) =>
+      prev.map((p, i) => {
+        if (i !== index) return p;
+        if (p.setWeights) {
+          const { setWeights, ...rest } = p;
+          return { ...rest, weight: Math.max(0, ...setWeights) };
+        }
+        return { ...p, setWeights: Array(p.sets).fill(p.weight) };
+      })
+    );
+
+  const updateSetWeight = (index: number, setIndex: number, weight: number) =>
+    setPlanned((prev) =>
+      prev.map((p, i) => {
+        if (i !== index || !p.setWeights) return p;
+        const setWeights = p.setWeights.map((w, j) => (j === setIndex ? weight : w));
+        return { ...p, setWeights, weight: Math.max(0, ...setWeights) };
+      })
+    );
+
   const remove = (index: number) => setPlanned((prev) => prev.filter((_, i) => i !== index));
 
   const move = (index: number, dir: -1 | 1) =>
@@ -254,17 +287,44 @@ export const WorkoutDayDialog = ({
                                 </div>
                               </div>
                               <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2">
-                                <Stepper label="Set" value={p.sets} step={1} min={1} onChange={(v) => update(i, { sets: v })} />
+                                <Stepper label="Set" value={p.sets} step={1} min={1} onChange={(v) => setSets(i, v)} />
                                 <Stepper label="Reps" value={p.reps} step={1} min={1} onChange={(v) => update(i, { reps: v })} />
-                                <Stepper
-                                  label="Vikt"
-                                  value={p.weight}
-                                  step={2.5}
-                                  min={0}
-                                  onChange={(v) => update(i, { weight: v })}
-                                  format={(v) => (v === 0 ? "–" : `${v} kg`)}
-                                />
+                                {!p.setWeights && (
+                                  <Stepper
+                                    label="Vikt"
+                                    value={p.weight}
+                                    step={2.5}
+                                    min={0}
+                                    onChange={(v) => update(i, { weight: v })}
+                                    format={(v) => (v === 0 ? "–" : `${v} kg`)}
+                                  />
+                                )}
                               </div>
+                              {p.setWeights && (
+                                <div className="mt-2 space-y-1.5 rounded-md bg-muted/40 p-2">
+                                  {p.setWeights.map((w, j) => (
+                                    <div key={j} className="flex items-center justify-between gap-2">
+                                      <span className="text-xs text-muted-foreground">Set {j + 1}</span>
+                                      <Stepper
+                                        value={w}
+                                        step={2.5}
+                                        min={0}
+                                        onChange={(v) => updateSetWeight(i, j, v)}
+                                        format={(v) => (v === 0 ? "–" : `${v} kg`)}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <Button
+                                type="button"
+                                variant="link"
+                                size="sm"
+                                className="px-0 h-auto mt-1 text-xs"
+                                onClick={() => togglePerSetWeights(i)}
+                              >
+                                {p.setWeights ? "Samma vikt för alla set" : "Olika vikt per set"}
+                              </Button>
                             </div>
                           </div>
                         </div>

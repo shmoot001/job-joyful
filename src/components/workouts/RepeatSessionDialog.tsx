@@ -21,7 +21,15 @@ const toFreshPlan = (exercises: PlannedExercise[]): PlannedExercise[] =>
   exercises.map(({ log, ...p }) => {
     const done = (log ?? []).filter((s) => s.done);
     const topWeight = done.reduce((max, s) => Math.max(max, s.weight), 0);
-    return { ...p, weight: topWeight > 0 ? topWeight : p.weight };
+    if (topWeight === 0) return p;
+    // Keep per-set weights if the sets were done with different weights
+    const weights = Array.from({ length: p.sets }, (_, i) =>
+      log?.[i]?.done ? log[i].weight : p.setWeights?.[i] ?? p.weight
+    );
+    const varied = weights.some((w) => w !== weights[0]);
+    return varied
+      ? { ...p, weight: topWeight, setWeights: weights }
+      : { ...p, weight: topWeight, setWeights: undefined };
   });
 
 export const RepeatSessionDialog = ({

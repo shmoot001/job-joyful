@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
   fillLog,
+  plannedWeightLabel,
   getExercise,
   planProgress,
   serializeDayPlan,
@@ -227,7 +228,7 @@ export const WorkoutSessionDialog = ({
                 <h3 className="text-lg font-semibold leading-tight">{def?.name ?? exercise.exerciseId}</h3>
                 <p className="text-sm text-muted-foreground">
                   Mål: {exercise.sets} × {exercise.reps}
-                  {exercise.weight > 0 && ` @ ${exercise.weight} kg`}
+                  {plannedWeightLabel(exercise) && ` @ ${plannedWeightLabel(exercise)}`}
                 </p>
               </div>
 

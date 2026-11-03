@@ -50,7 +50,7 @@ export const WeeklySummary = ({ weeks }: { weeks: WeekStats[] }) => {
   const start = parseISO(week.weekStart);
 
   const maxSets = Math.max(1, ...MUSCLE_GROUPS.map((g) => Math.max(week.groups[g.id].planned, week.groups[g.id].done)));
-  const neglected = MUSCLE_GROUPS.filter((g) => g.id !== "cardio" && week.groups[g.id].planned === 0 && week.groups[g.id].done === 0);
+  const neglected = MUSCLE_GROUPS.filter((g) => g.id !== "cardio" && g.id !== "forearms" && week.groups[g.id].planned === 0 && week.groups[g.id].done === 0);
 
   // Volume for the last 8 weeks, oldest → newest
   const trend = weeks

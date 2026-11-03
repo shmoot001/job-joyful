@@ -235,6 +235,89 @@ export const EXERCISES: ExerciseDefinition[] = [
     "defaultReps": 10
   },
   {
+    "id": "Low_Cable_Crossover",
+    "name": "Low to High Cable Fly",
+    "group": "chest",
+    "equipment": "cable",
+    "primaryMuscles": [
+      "chest"
+    ],
+    "level": "beginner",
+    "images": [
+      "Low_Cable_Crossover/0.jpg",
+      "Low_Cable_Crossover/1.jpg"
+    ],
+    "instructions": [
+      "To move into the starting position, place the pulleys at the low position, select the resistance to be used and grasp a handle in each hand.",
+      "Step forward, gaining tension in the pulleys. Your palms should be facing forward, hands below the waist, and your arms straight. This will be your starting position.",
+      "With a slight bend in your arms, draw your hands upward and toward the midline of your body. Your hands should come together in front of your chest, palms facing up.",
+      "Return your arms back to the starting position after a brief pause."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Leverage_Chest_Press",
+    "name": "Machine Chest Press",
+    "group": "chest",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "chest"
+    ],
+    "level": "beginner",
+    "images": [
+      "Leverage_Chest_Press/0.jpg",
+      "Leverage_Chest_Press/1.jpg"
+    ],
+    "instructions": [
+      "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the bottom or middle of the pectorals at the beginning of the motion.",
+      "Your chest and head should be up and your shoulder blades retracted. This will be your starting position.",
+      "Press the handles forward by extending through the elbow.",
+      "After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete."
+    ],
+    "defaultSets": 4,
+    "defaultReps": 10
+  },
+  {
+    "id": "Leverage_Decline_Chest_Press",
+    "name": "Decline Chest Press (Machine)",
+    "group": "chest",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "chest"
+    ],
+    "level": "beginner",
+    "images": [
+      "Leverage_Decline_Chest_Press/0.jpg",
+      "Leverage_Decline_Chest_Press/1.jpg"
+    ],
+    "instructions": [
+      "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the bottom of the pectorals at the beginning of the motion. Your chest and head should be up and your shoulder blades retracted. This will be your starting position.",
+      "Press the handles forward by extending through the elbow.",
+      "After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 10
+  },
+  {
+    "id": "Cable_Middle_Chest_Fly",
+    "name": "Cable Middle Chest Fly",
+    "group": "chest",
+    "equipment": "cable",
+    "primaryMuscles": [
+      "chest"
+    ],
+    "level": "beginner",
+    "images": [],
+    "instructions": [
+      "Set both pulleys at chest height and grab a handle in each hand. Step forward into a staggered stance with a slight bend in the elbows. This will be your starting position.",
+      "Keeping the elbows fixed, bring the handles together in front of your chest in a wide hugging motion while squeezing the chest.",
+      "Pause briefly, then slowly return to the starting position with control."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
     "id": "Pullups",
     "name": "Pullups",
     "group": "back",
@@ -490,6 +573,95 @@ export const EXERCISES: ExerciseDefinition[] = [
     ],
     "defaultSets": 4,
     "defaultReps": 10
+  },
+  {
+    "id": "Leverage_Iso_Row",
+    "name": "Chest Supported Machine Row",
+    "group": "back",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "lats"
+    ],
+    "level": "beginner",
+    "images": [
+      "Leverage_Iso_Row/0.jpg",
+      "Leverage_Iso_Row/1.jpg"
+    ],
+    "instructions": [
+      "Load an appropriate weight onto the pins and adjust the seat height so that the handles are at chest level. Grasp the handles with either a neutral or pronated grip. This will be your starting position.",
+      "Pull the handles towards your torso, retracting your shoulder blades as you flex the elbow.",
+      "Pause at the bottom of the motion, and then slowly return the handles to the starting position. For multiple repetitions, avoid completely returning the weight to the stops to keep tension on the muscles being worked."
+    ],
+    "defaultSets": 4,
+    "defaultReps": 10
+  },
+  {
+    "id": "Rope_Straight-Arm_Pulldown",
+    "name": "Rope Straight-Arm Pulldown",
+    "group": "back",
+    "equipment": "cable",
+    "primaryMuscles": [
+      "lats"
+    ],
+    "level": "beginner",
+    "images": [
+      "Rope_Straight-Arm_Pulldown/0.jpg",
+      "Rope_Straight-Arm_Pulldown/1.jpg"
+    ],
+    "instructions": [
+      "Attach a rope to a high pulley and make your weight selection. Stand a couple feet back from the pulley with your feet staggered and take the rope with both hands. Lean forward from the hip, keeping your back straight, with your arms extended up in front of you. This will be your starting position.",
+      "Keeping your arms straight, extend the shoulder to pull the rope down to your thighs.",
+      "Pause at the bottom of the motion, squeezing your lats.",
+      "Return to the starting position without allowing the weight to fully rest on the stack."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Seated_One-arm_Cable_Pulley_Rows",
+    "name": "One-Arm Cable Row",
+    "group": "back",
+    "equipment": "cable",
+    "primaryMuscles": [
+      "middle back"
+    ],
+    "level": "intermediate",
+    "images": [
+      "Seated_One-arm_Cable_Pulley_Rows/0.jpg",
+      "Seated_One-arm_Cable_Pulley_Rows/1.jpg"
+    ],
+    "instructions": [
+      "To get into the starting position, first sit down on the machine and place your feet on the front platform or crossbar provided making sure that your knees are slightly bent and not locked.",
+      "Lean over as you keep the natural alignment of your back and grab the single handle attachment with your left arm using a palms-down grip.",
+      "With your arm extended pull back until your torso is at a 90-degree angle from your legs. Your back should be slightly arched and your chest should be sticking out. You should be feeling a nice stretch on your lat as you hold the bar in front of you. The right arm can be kept by the waist. This is the starting position of the exercise.",
+      "Keeping the torso stationary, pull the handles back towards your torso while keeping the arms close to it as you rotate the wrist, so that by the time your hand is by your abdominals it is in a neutral position (palms facing the torso). Breathe out as you perform that movement. At that point you should be squeezing your back muscles hard.",
+      "Hold that contraction for a second and slowly go back to the original position while breathing in. Tip: Remember to rotate the wrist as you go back to the starting position so that the palms are facing down again.",
+      "Repeat for the recommended amount of repetitions and then perform the same movement with the right hand."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Leverage_High_Row",
+    "name": "One-Arm Lever High Row",
+    "group": "back",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "middle back"
+    ],
+    "level": "beginner",
+    "images": [
+      "Leverage_High_Row/0.jpg",
+      "Leverage_High_Row/1.jpg"
+    ],
+    "instructions": [
+      "Load an appropriate weight onto the pins and adjust the seat height so that you can just reach the handles above you. Adjust the knee pad to help keep you down. Grasp the handles with a pronated grip. This will be your starting position.",
+      "Pull the handles towards your torso, retracting your shoulder blades as you flex the elbow.",
+      "Pause at the bottom of the motion, and then slowly return the handles to the starting position.",
+      "For multiple repetitions, avoid completely returning the weight to the stops to keep tension on the muscles being worked."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
   },
   {
     "id": "Barbell_Squat",
@@ -945,6 +1117,28 @@ export const EXERCISES: ExerciseDefinition[] = [
     "defaultReps": 10
   },
   {
+    "id": "Thigh_Adductor",
+    "name": "Seated Hip Adduction (Machine)",
+    "group": "legs",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "adductors"
+    ],
+    "level": "beginner",
+    "images": [
+      "Thigh_Adductor/0.jpg",
+      "Thigh_Adductor/1.jpg"
+    ],
+    "instructions": [
+      "To begin, sit down on the adductor machine and select a weight you are comfortable with. When your legs are positioned properly on the leg pads of the machine, grip the handles on each side. Your entire upper body (from the waist up) should be stationary. This is the starting position.",
+      "Slowly press against the machine with your legs to move them towards each other while exhaling.",
+      "Feel the contraction for a second and begin to move your legs back to the starting position while breathing in. Note: Remember to keep your upper body stationary and avoid fast jerking motions in order to prevent any injuries from occurring.",
+      "Repeat for the recommended amount of repetitions."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
     "id": "Standing_Military_Press",
     "name": "Standing Military Press",
     "group": "shoulders",
@@ -1240,6 +1434,24 @@ export const EXERCISES: ExerciseDefinition[] = [
     "defaultReps": 12
   },
   {
+    "id": "One-Arm_Cable_Lateral_Raise",
+    "name": "One-Arm Cable Lateral Raise",
+    "group": "shoulders",
+    "equipment": "cable",
+    "primaryMuscles": [
+      "shoulders"
+    ],
+    "level": "beginner",
+    "images": [],
+    "instructions": [
+      "Set a pulley to the lowest position. Stand side-on to the machine and grab the handle with the hand farthest from it, cable crossing in front of your body.",
+      "With a slight bend in the elbow, raise your arm out to the side until it is at shoulder height.",
+      "Pause, then slowly lower back to the starting position. Complete all reps, then switch sides."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
     "id": "Barbell_Curl",
     "name": "Barbell Curl",
     "group": "biceps",
@@ -1418,6 +1630,50 @@ export const EXERCISES: ExerciseDefinition[] = [
       "Using your biceps, pull your arms up as you exhale until your biceps touch your forearms. Tip: Remember to keep the elbows in and your upper arms stationary.",
       "After a 1 second contraction where you squeeze your biceps, slowly start to bring the weight back to the original position.",
       "Repeat for the recommended amount of repetitions."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Standing_Biceps_Cable_Curl",
+    "name": "Bar Cable Biceps Curl",
+    "group": "biceps",
+    "equipment": "cable",
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "level": "beginner",
+    "images": [
+      "Standing_Biceps_Cable_Curl/0.jpg",
+      "Standing_Biceps_Cable_Curl/1.jpg"
+    ],
+    "instructions": [
+      "Stand up with your torso upright while holding a cable curl bar that is attached to a low pulley. Grab the cable bar at shoulder width and keep the elbows close to the torso. The palm of your hands should be facing up (supinated grip). This will be your starting position.",
+      "While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second as you squeeze the muscle.",
+      "Slowly begin to bring the curl bar back to starting position as your breathe in.",
+      "Repeat for the recommended amount of repetitions."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Machine_Bicep_Curl",
+    "name": "Machine Biceps Curl",
+    "group": "biceps",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "level": "beginner",
+    "images": [
+      "Machine_Bicep_Curl/0.jpg",
+      "Machine_Bicep_Curl/1.jpg"
+    ],
+    "instructions": [
+      "Adjust the seat to the appropriate height and make your weight selection. Place your upper arms against the pads and grasp the handles. This will be your starting position.",
+      "Perform the movement by flexing the elbow, pulling your lower arm towards your upper arm.",
+      "Pause at the top of the movement, and then slowly return the weight to the starting position.",
+      "Avoid returning the weight all the way to the stops until the set is complete to keep tension on the muscles being worked."
     ],
     "defaultSets": 3,
     "defaultReps": 12
@@ -1647,6 +1903,92 @@ export const EXERCISES: ExerciseDefinition[] = [
     ],
     "defaultSets": 3,
     "defaultReps": 12
+  },
+  {
+    "id": "Seated_One-Arm_Dumbbell_Palms-Up_Wrist_Curl",
+    "name": "One-Arm Dumbbell Wrist Curl",
+    "group": "forearms",
+    "equipment": "dumbbell",
+    "primaryMuscles": [
+      "forearms"
+    ],
+    "level": "beginner",
+    "images": [
+      "Seated_One-Arm_Dumbbell_Palms-Up_Wrist_Curl/0.jpg",
+      "Seated_One-Arm_Dumbbell_Palms-Up_Wrist_Curl/1.jpg"
+    ],
+    "instructions": [
+      "Sit on a flat bench with a dumbbell in your right hand.",
+      "Place your feet flat on the floor, at a distance that is slightly wider than shoulder width apart.",
+      "Lean forward and place your right forearm on top of your upper right thigh with your palm up. Tip: Make sure that the front of the wrist lies on top of your knees. This will be your starting position.",
+      "Lower the dumbbell as far as possible as you keep a tight grip on the dumbbell. Inhale as you perform this movement.",
+      "Now curl the dumbbell as high as possible as you contract the forearms and as you exhale. Keep the contraction for a second before you lower again. Tip: The only movement should happen at the wrist.",
+      "Perform for the recommended amount of repetitions, switch arms and repeat the movement."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 15
+  },
+  {
+    "id": "Reverse_Barbell_Curl",
+    "name": "Barbell Reverse Grip Forearm Curl",
+    "group": "forearms",
+    "equipment": "barbell",
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "level": "beginner",
+    "images": [
+      "Reverse_Barbell_Curl/0.jpg",
+      "Reverse_Barbell_Curl/1.jpg"
+    ],
+    "instructions": [
+      "Stand up with your torso upright while holding a barbell at shoulder width with the elbows close to the torso. The palm of your hands should be facing down (pronated grip). This will be your starting position.",
+      "While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second as you squeeze the muscle.",
+      "Slowly begin to bring the bar back to starting position as your breathe in.",
+      "Repeat for the recommended amount of repetitions."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Reverse_Cable_Curl",
+    "name": "Reverse Grip Cable Curl",
+    "group": "forearms",
+    "equipment": "cable",
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "level": "beginner",
+    "images": [
+      "Reverse_Cable_Curl/0.jpg",
+      "Reverse_Cable_Curl/1.jpg"
+    ],
+    "instructions": [
+      "Stand up with your torso upright while holding a bar attachment that is attached to a low pulley using a pronated (palms down) and shoulder width grip. Make sure also that you keep the elbows close to the torso. This will be your starting position.",
+      "While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second as you squeeze the muscle.",
+      "Slowly begin to bring the bar back to starting position as your breathe in.",
+      "Repeat for the recommended amount of repetitions."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Dead_Hang",
+    "name": "Dead Hang",
+    "group": "forearms",
+    "equipment": "body only",
+    "primaryMuscles": [
+      "forearms"
+    ],
+    "level": "beginner",
+    "images": [],
+    "instructions": [
+      "Grab a pull-up bar with an overhand, shoulder-width grip.",
+      "Let your body hang with arms fully straight and feet off the floor, shoulders slightly engaged.",
+      "Hold for as long as possible (reps = seconds), then step down with control."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 30
   },
   {
     "id": "Plank",
@@ -1892,6 +2234,133 @@ export const EXERCISES: ExerciseDefinition[] = [
     "defaultReps": 15
   },
   {
+    "id": "Ab_Crunch_Machine",
+    "name": "Machine Abdominal Crunch",
+    "group": "core",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "abdominals"
+    ],
+    "level": "intermediate",
+    "images": [
+      "Ab_Crunch_Machine/0.jpg",
+      "Ab_Crunch_Machine/1.jpg"
+    ],
+    "instructions": [
+      "Select a light resistance and sit down on the ab machine placing your feet under the pads provided and grabbing the top handles. Your arms should be bent at a 90 degree angle as you rest the triceps on the pads provided. This will be your starting position.",
+      "At the same time, begin to lift the legs up as you crunch your upper torso. Breathe out as you perform this movement. Tip: Be sure to use a slow and controlled motion. Concentrate on using your abs to move the weight while relaxing your legs and feet.",
+      "After a second pause, slowly return to the starting position as you breathe in.",
+      "Repeat the movement for the prescribed amount of repetitions."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 15
+  },
+  {
+    "id": "Knee_Hip_Raise_On_Parallel_Bars",
+    "name": "Captain's Chair Straight Leg Raise",
+    "group": "core",
+    "equipment": "other",
+    "primaryMuscles": [
+      "abdominals"
+    ],
+    "level": "beginner",
+    "images": [
+      "Knee_Hip_Raise_On_Parallel_Bars/0.jpg",
+      "Knee_Hip_Raise_On_Parallel_Bars/1.jpg"
+    ],
+    "instructions": [
+      "Position your body on the vertical leg raise bench so that your forearms are resting on the pads next to the torso and holding on to the handles. Your arms will be bent at a 90 degree angle.",
+      "The torso should be straight with the lower back pressed against the pad of the machine and the legs extended pointing towards the floor. This will be your starting position.",
+      "Now as you breathe out, lift your legs up as you keep them extended. Continue this movement until your legs are roughly parallel to the floor and then hold the contraction for a second. Tip: Do not use any momentum or swinging as you perform this exercise.",
+      "Slowly go back to the starting position as you breathe in.",
+      "Repeat for the recommended amount of repetitions."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Sit-Up",
+    "name": "Sit-Ups",
+    "group": "core",
+    "equipment": "body only",
+    "primaryMuscles": [
+      "abdominals"
+    ],
+    "level": "beginner",
+    "images": [
+      "Sit-Up/0.jpg",
+      "Sit-Up/1.jpg"
+    ],
+    "instructions": [
+      "Lie down on the floor placing your feet either under something that will not move or by having a partner hold them. Your legs should be bent at the knees.",
+      "Place your hands behind your head and lock them together by clasping your fingers. This is the starting position.",
+      "Elevate your upper body so that it creates an imaginary V-shape with your thighs. Breathe out when performing this part of the exercise.",
+      "Once you feel the contraction for a second, lower your upper body back down to the starting position while inhaling.",
+      "Repeat for the recommended amount of repetitions."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 15
+  },
+  {
+    "id": "Alternate_Heel_Touchers",
+    "name": "Ankle Taps",
+    "group": "core",
+    "equipment": "body only",
+    "primaryMuscles": [
+      "abdominals"
+    ],
+    "level": "beginner",
+    "images": [
+      "Alternate_Heel_Touchers/0.jpg",
+      "Alternate_Heel_Touchers/1.jpg"
+    ],
+    "instructions": [
+      "Lie on the floor with the knees bent and the feet on the floor around 18-24 inches apart. Your arms should be extended by your side. This will be your starting position.",
+      "Crunch over your torso forward and up about 3-4 inches to the right side and touch your right heel as you hold the contraction for a second. Exhale while performing this movement.",
+      "Now go back slowly to the starting position as you inhale.",
+      "Now crunch over your torso forward and up around 3-4 inches to the left side and touch your left heel as you hold the contraction for a second. Exhale while performing this movement and then go back to the starting position as you inhale. Now that both heels have been touched, that is considered 1 repetition.",
+      "Continue alternating sides in this manner until all prescribed repetitions are done."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 20
+  },
+  {
+    "id": "Hanging_Knee_Raise",
+    "name": "Hanging Knee to Chest",
+    "group": "core",
+    "equipment": "body only",
+    "primaryMuscles": [
+      "abdominals"
+    ],
+    "level": "beginner",
+    "images": [],
+    "instructions": [
+      "Hang from a pull-up bar with arms straight and legs together.",
+      "Brace your core and pull your knees up towards your chest, tilting the pelvis slightly at the top.",
+      "Slowly lower your legs back down without swinging."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 12
+  },
+  {
+    "id": "Hollow_Body_Hold",
+    "name": "Hollow Body Hold",
+    "group": "core",
+    "equipment": "body only",
+    "primaryMuscles": [
+      "abdominals"
+    ],
+    "level": "beginner",
+    "images": [],
+    "instructions": [
+      "Lie on your back with arms extended overhead and legs straight.",
+      "Press your lower back into the floor and lift your shoulders and legs a few inches off the ground, forming a shallow banana shape.",
+      "Hold the position (reps = seconds) while breathing steadily, keeping the lower back flat."
+    ],
+    "defaultSets": 3,
+    "defaultReps": 30
+  },
+  {
     "id": "One-Arm_Kettlebell_Swings",
     "name": "One-Arm Kettlebell Swings",
     "group": "cardio",
@@ -1969,5 +2438,45 @@ export const EXERCISES: ExerciseDefinition[] = [
     ],
     "defaultSets": 3,
     "defaultReps": 15
+  },
+  {
+    "id": "Running_Treadmill",
+    "name": "Treadmill Run",
+    "group": "cardio",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "level": "beginner",
+    "images": [
+      "Running_Treadmill/0.jpg",
+      "Running_Treadmill/1.jpg"
+    ],
+    "instructions": [
+      "To begin, step onto the treadmill and select the desired option from the menu. Most treadmills have a manual setting, or you can select a program to run. Typically, you can enter your age and weight to estimate the amount of calories burned during exercise. Elevation can be adjusted to change the intensity of the workout.",
+      "Treadmills offer convenience, cardiovascular benefits, and usually have less impact than running outside. A 150 lb person will burn over 450 calories running 8 miles per hour for 30 minutes. Maintain proper posture as you run, and only hold onto the handles when necessary, such as when dismounting or checking your heart rate."
+    ],
+    "defaultSets": 1,
+    "defaultReps": 20
+  },
+  {
+    "id": "Bicycling_Stationary",
+    "name": "Stationary Bike",
+    "group": "cardio",
+    "equipment": "machine",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "level": "beginner",
+    "images": [
+      "Bicycling_Stationary/0.jpg",
+      "Bicycling_Stationary/1.jpg"
+    ],
+    "instructions": [
+      "To begin, seat yourself on the bike and adjust the seat to your height.",
+      "Select the desired option from the menu. You may have to start pedaling to turn it on. You can use the manual setting, or you can select a program to use. Typically, you can enter your age and weight to estimate the amount of calories burned during exercise. The level of resistance can be changed throughout the workout. The handles can be used to monitor your heart rate to help you stay at an appropriate intensity."
+    ],
+    "defaultSets": 1,
+    "defaultReps": 20
   }
 ];
