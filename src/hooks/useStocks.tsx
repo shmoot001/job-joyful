@@ -23,7 +23,7 @@ export function useStocks() {
     queryKey: ["stocks", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const res = await Promise.all(TABLES.map((t) => db.from(t).select("*").order("created_at", { ascending: true })));
+      const res = await Promise.all(TABLES.map((t) => t === "stock_trade_tags" ? db.from(t).select("*") : db.from(t).select("*").order("created_at", { ascending: true })));
       res.forEach((r: any) => { if (r.error) throw r.error; });
       const num = (rows: any[]) => rows.map((r) => {
         const o: any = { ...r };
