@@ -17,6 +17,8 @@ import { SaleDialog } from "@/components/stocks/SaleDialog";
 import { PositionsView } from "@/components/stocks/PositionsView";
 import { SalesList } from "@/components/stocks/SalesList";
 import { PortfolioOverview } from "@/components/stocks/PortfolioOverview";
+import { AvanzaImportDialog } from "@/components/stocks/AvanzaImportDialog";
+import { Upload } from "lucide-react";
 
 const today = () => format(new Date(), "yyyy-MM-dd");
 const TAG_COLORS = ["#3B82F6", "#22C55E", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4"];
@@ -28,6 +30,7 @@ export default function Stocks() {
   const [tradeDialog, setTradeDialog] = useState<TradeDialogState>(null);
   const [saleDialog, setSaleDialog] = useState<{ trade: StockTrade; sale?: StockSale } | null>(null);
   const [tagsOpen, setTagsOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [tagEditTrade, setTagEditTrade] = useState<StockTrade | null>(null);
 
   const tagsFor = (id: string): StockTag[] =>
@@ -63,6 +66,10 @@ export default function Stocks() {
           <Button variant="outline" onClick={() => setTagsOpen(true)}>
             <TagIcon className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Taggar</span>
+          </Button>
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Upload className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Importera Avanza</span>
           </Button>
           <Button onClick={() => setTradeDialog({})}>
             <Plus className="w-4 h-4 mr-2" />
@@ -111,6 +118,7 @@ export default function Stocks() {
 
       {tradeDialog && <TradeDialog s={s} trade={tradeDialog.trade} prefill={tradeDialog.prefill} onClose={() => setTradeDialog(null)} />}
       {saleDialog && <SaleDialog s={s} trade={saleDialog.trade} sale={saleDialog.sale} onClose={() => setSaleDialog(null)} />}
+      {importOpen && <AvanzaImportDialog s={s} onClose={() => setImportOpen(false)} />}
       <TagsDialog open={tagsOpen} onOpenChange={setTagsOpen} s={s} />
       {tagEditTrade && <EditTradeTagsDialog key={tagEditTrade.id} trade={tagEditTrade} onClose={() => setTagEditTrade(null)} s={s} />}
     </main>
